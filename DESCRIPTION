@@ -1,0 +1,24 @@
+Package: geomeTriD.documentation
+Type: Package
+Title: The documentation for geomeTriD package
+Version: 0.0.1
+Authors@R: c(person(given="Jianhong", family="Ou", email="jou@morgridge.org", 
+                 role=c("aut", "cre"), comment=c(ORCID="0000-0002-8652-2488")))
+Description: The data and scripts to help users to generate plots.
+BugReports: https://github.com/jianhong/geomeTriD_documentation/issues
+URL: https://jianhong.github.io/geomeTriD_documentation
+Depends: R (>= 4.4.0)
+Imports: trackViewer, GenomicRanges,
+         BiocFileCache, IRanges, methods, utils
+Suggests: knitr, rmarkdown, pkgdown, bookdown, pander,
+    ChIPpeakAnno, GenomeInfoDb, GenomicFeatures, InteractionSet,
+    RColorBrewer, TxDb.Drerio.UCSC.danRer10.refGene,
+    TxDb.Hsapiens.UCSC.hg19.knownGene,
+    TxDb.Mmusculus.UCSC.mm39.knownGene, biomaRt, grid,
+    org.Dr.eg.db, org.Hs.eg.db, org.Mm.eg.db, rgl,
+    rtracklayer, txdbmaker
+License: MIT + file LICENSE
+Encoding: UTF-8
+VignetteBuilder: knitr
+RoxygenNote: 7.3.2
+DockerImage: ghcr.io/jianhong/geomeTriD_documentation

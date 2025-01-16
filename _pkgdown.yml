@@ -1,0 +1,18 @@
+url: https://jianhong.github.io/geomeTriD_documentation
+
+template:
+  params:
+    bootswatch: flatly
+    #ganalytics: UA-99999999-9
+
+home:
+  title: "Demo for loopBouquetPlot function"
+  type: inverse
+
+
+navbar:
+  right:
+   - icon: fa-github
+     href: https://github.com/jianhong/geomeTriD_documentation
+     
+
