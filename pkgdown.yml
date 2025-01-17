@@ -1,0 +1,11 @@
+pandoc: 3.6.1
+pkgdown: 2.1.1
+pkgdown_sha: ~
+articles:
+  Fig1: Fig1.html
+  Fig2: Fig2.html
+  Fig3: Fig3.html
+last_built: 2025-01-17T18:06Z
+urls:
+  reference: https://jianhong.github.io/geomeTriD_documentation/reference
+  article: https://jianhong.github.io/geomeTriD_documentation/articles
