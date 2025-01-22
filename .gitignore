@@ -51,3 +51,5 @@ rsconnect/
 README.Rmd
 
 **/.DS_Store
+
+*.Rproj

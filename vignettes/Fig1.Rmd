@@ -101,8 +101,8 @@ for(i in seq_along(objsC)){
     objsC[[i]]$layer <- 'bottom' ## put compartment and backbone to bottom layer
   }
 }
-threeJsViewer(objsC, background = 'white', width = 1920, height = 1080)
-#widget <- threeJsViewer(objsC, background = 'white', width = 1920, height = 1080)
+threeJsViewer(objsC, background = 'black')
+#widget <- threeJsViewer(objsC, background = 'black', width = 1920, height = 1080)
 #tempfile <- 'Fig1.part1.html'
 #htmlwidgets::saveWidget(widget, file=tempfile)
 #utils::browseURL(tempfile)
@@ -119,11 +119,11 @@ for(i in seq_along(objsC)){
 threeJsViewer(objsC,
               title = c('A/B compartment',
                         'H3K9me3 and H3K27Ac signals'),
-              background = 'white', width = 1920, height = 1080)
+              background = 'black')
 # widget <- threeJsViewer(objsC,
 #               title = c('A/B compartment',
 #                         'H3K9me3 and H3K27Ac signals'),
-#               background = 'white', width = 1920, height = 1080)
+#               background = 'black', width = 1920, height = 1080)
 #tempfile <- 'Fig1.part2.html'
 #htmlwidgets::saveWidget(widget, file=tempfile)
 #utils::browseURL(tempfile)
