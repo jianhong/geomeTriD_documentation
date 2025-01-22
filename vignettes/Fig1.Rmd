@@ -59,12 +59,12 @@ url <- c(#ctcf = 'ENCFF364OXN/@@download/ENCFF364OXN.bigWig',
          H3K27ac = 'ENCFF180LKW/@@download/ENCFF180LKW.bigWig')
 urls <- paste0(prefix, url)
 names(urls) <- names(url)
-colorCode <- c('active'='#481244', 'inactive'='#2E5319')
+colorCode <- c('active'='#EA262E', 'inactive'='#179281')
 # download the files and import the signals
 genomicSigs <- importSignalFromUrl(urls, range = range,
                                    cols = list(
-                                     'H3K9me3'=c('#222222', '#DB612A'),
-                                     'H3K27ac'=c('#333333', '#C72C41')),
+                                     'H3K9me3'=c('#000011', 'blue'),
+                                     'H3K27ac'=c('#111100', 'orange')),
                                    format = 'BigWig')
 # import the A/B compartments
 compartments <- rtracklayer::import('https://ftp.ncbi.nlm.nih.gov/geo/series/GSE63nnn/GSE63525/suppl/GSE63525%5FGM12878%5Fsubcompartments.bed.gz')
@@ -107,6 +107,7 @@ threeJsViewer(objsC, background = 'black')
 #htmlwidgets::saveWidget(widget, file=tempfile)
 #utils::browseURL(tempfile)
 
+
 ## side by side layout
 for(i in seq_along(objsC)){
   if(grepl('backbone|compartment', names(objsC)[i])){
@@ -120,13 +121,14 @@ threeJsViewer(objsC,
               title = c('A/B compartment',
                         'H3K9me3 and H3K27Ac signals'),
               background = 'black')
+
 # widget <- threeJsViewer(objsC,
 #               title = c('A/B compartment',
 #                         'H3K9me3 and H3K27Ac signals'),
 #               background = 'black', width = 1920, height = 1080)
-#tempfile <- 'Fig1.part2.html'
-#htmlwidgets::saveWidget(widget, file=tempfile)
-#utils::browseURL(tempfile)
+# tempfile <- 'Fig1.part2.html'
+# htmlwidgets::saveWidget(widget, file=tempfile)
+# utils::browseURL(tempfile)
 ```
 
 ## SessionInfo
