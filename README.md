@@ -1,13 +1,13 @@
-Function demo for trackViewer::loopBouquetPlot
+Function demo for geomeTriD
 ================
 Authors: Jianhong Ou[^1]<br/>
-Last modified: 2025-01-16
+Last modified: 2025-01-24
 
 ## Overview
 
-The `loopBouquetPlot` is a new method introduced by **trackViewer**
-package to visualize genomic interactions along with annotation for NGS
-dataset such as HiC, HiChIP, PLAC-seq, ChIA-PET, and HiCAR data.
+The `geomeTriD` is a Bioconductor package to visualize genomic
+interactions along with annotation for NGS dataset such as HiC, HiChIP,
+PLAC-seq, ChIA-PET, and HiCAR data.
 
 ### Pre-requisites
 
@@ -56,32 +56,19 @@ docker run -it \
 cd output && R
 ```
 
-Once it is run, please output the figures to output folder like this:
-
-``` r
-pdf('plot.pdf')
-loopBouquetPlot(...)
-dev.off()
-```
-
-And you will see the plots in tmp4output folder on host machine like
-this.
-
-![](https://raw.githubusercontent.com/jianhong/geomeTriD_documentation/main/inst/extdata/banner.svg)
-
 ### Documentation
 
 To view documentation of geomeTriD_documentation, start R and enter:
 
 ``` r
-browseVignettes("geomeTriD_documentation")
+browseVignettes("geomeTriD.documentation")
 ```
 
 The source code for showcases are available at
 [Fig1](https://jianhong.github.io/geomeTriD_documentation/articles/Fig1.html),
-[Fig2](https://jianhong.github.io/geomeTriD_documentation/articles/MAPS.html)
+[Fig2](https://jianhong.github.io/geomeTriD_documentation/articles/Fig2.html)
 and
-[Fig3](https://jianhong.github.io/geomeTriD_documentation/articles/HumanSample.html)
+[Fig3](https://jianhong.github.io/geomeTriD_documentation/articles/Fig3.html)
 
 ### Contributions and Support
 
@@ -101,9 +88,8 @@ is as follows:
     contribution](https://contributions.bioconductor.org/)
 4.  Use `devtools::build` and `devtools::check` to check the package
     work properly.
-5.  Submit a Pull Request against the `main` or current
-    `RELEASE_VERSION` branch and wait for the code to be reviewed and
-    merged
+5.  Submit a Pull Request against the `main` branch and wait for the
+    code to be reviewed and merged
 
 If you’re not used to this workflow with git, you can start with some
 [docs from
@@ -112,7 +98,7 @@ or even their [excellent `git` resources](https://try.github.io/).
 
 For further information or help, don’t hesitate to get in touch on the
 [Bioconductor support site](https://support.bioconductor.org/) with tag
-`#trackViewer`.
+`#geomeTriD`.
 
 ### Reporting bug/issues
 
@@ -120,4 +106,4 @@ Many thanks for taking an interest in improving this package. Please
 report bug/issues at
 [jianhong/geomeTriD_documentation/issues](https://github.com/jianhong/geomeTriD_documentation/issues).
 
-[^1]: Regeneration Center, Duke University, Durham, North Carolina, USA.
+[^1]: Morgridge Institue, Madison, 53715, WI, USA.
