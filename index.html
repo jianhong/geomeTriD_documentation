@@ -82,13 +82,13 @@
   <div class="contents col-md-9">
 
 <div class="section level1">
-<div class="page-header"><h1 id="function-demo-for-trackviewerloopbouquetplot">Function demo for trackViewer::loopBouquetPlot<a class="anchor" aria-label="anchor" href="#function-demo-for-trackviewerloopbouquetplot"></a>
+<div class="page-header"><h1 id="function-demo-for-geometrid">Function demo for geomeTriD<a class="anchor" aria-label="anchor" href="#function-demo-for-geometrid"></a>
 </h1></div>
-<p>Authors: Jianhong Ou<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a><br> Last modified: 2025-01-16</p>
+<p>Authors: Jianhong Ou<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a><br> Last modified: 2025-01-24</p>
 <div class="section level2">
 <h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
-<p>The <code>loopBouquetPlot</code> is a new method introduced by <strong>trackViewer</strong> package to visualize genomic interactions along with annotation for NGS dataset such as HiC, HiChIP, PLAC-seq, ChIA-PET, and HiCAR data.</p>
+<p>The <code>geomeTriD</code> is a Bioconductor package to visualize genomic interactions along with annotation for NGS dataset such as HiC, HiChIP, PLAC-seq, ChIA-PET, and HiCAR data.</p>
 <div class="section level3">
 <h3 id="pre-requisites">Pre-requisites<a class="anchor" aria-label="anchor" href="#pre-requisites"></a>
 </h3>
@@ -121,21 +121,14 @@
 <span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>  ghcr.io/jianhong/geomeTriD_documentation:latest <span class="dt">\</span></span>
 <span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>  bash</span>
 <span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="bu">cd</span> output <span class="kw">&amp;&amp;</span> <span class="ex">R</span></span></code></pre></div>
-<p>Once it is run, please output the figures to output folder like this:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/grDevices/pdf.html" class="external-link">pdf</a></span><span class="op">(</span><span class="st">'plot.pdf'</span><span class="op">)</span></span>
-<span><span class="fu">loopBouquetPlot</span><span class="op">(</span><span class="va">...</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.off</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p>And you will see the plots in tmp4output folder on host machine like this.</p>
-<p><img src="https://raw.githubusercontent.com/jianhong/geomeTriD_documentation/main/inst/extdata/banner.svg"></p>
 </div>
 <div class="section level3">
 <h3 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
 </h3>
 <p>To view documentation of geomeTriD_documentation, start R and enter:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/browseVignettes.html" class="external-link">browseVignettes</a></span><span class="op">(</span><span class="st">"geomeTriD_documentation"</span><span class="op">)</span></span></code></pre></div>
-<p>The source code for showcases are available at <a href="https://jianhong.github.io/geomeTriD_documentation/articles/Fig1.html">Fig1</a>, <a href="https://jianhong.github.io/geomeTriD_documentation/articles/MAPS.html">Fig2</a> and <a href="https://jianhong.github.io/geomeTriD_documentation/articles/HumanSample.html">Fig3</a></p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/browseVignettes.html" class="external-link">browseVignettes</a></span><span class="op">(</span><span class="st">"geomeTriD.documentation"</span><span class="op">)</span></span></code></pre></div>
+<p>The source code for showcases are available at <a href="https://jianhong.github.io/geomeTriD_documentation/articles/Fig1.html">Fig1</a>, <a href="https://jianhong.github.io/geomeTriD_documentation/articles/Fig2.html">Fig2</a> and <a href="https://jianhong.github.io/geomeTriD_documentation/articles/Fig3.html">Fig3</a></p>
 </div>
 <div class="section level3">
 <h3 id="contributions-and-support">Contributions and Support<a class="anchor" aria-label="anchor" href="#contributions-and-support"></a>
@@ -148,10 +141,10 @@
 <li>Make the necessary changes / additions within your forked repository following <a href="https://contributions.bioconductor.org/" class="external-link">Bioconductor contribution</a>
 </li>
 <li>Use <code><a href="https://devtools.r-lib.org/reference/build.html" class="external-link">devtools::build</a></code> and <code><a href="https://devtools.r-lib.org/reference/check.html" class="external-link">devtools::check</a></code> to check the package work properly.</li>
-<li>Submit a Pull Request against the <code>main</code> or current <code>RELEASE_VERSION</code> branch and wait for the code to be reviewed and merged</li>
+<li>Submit a Pull Request against the <code>main</code> branch and wait for the code to be reviewed and merged</li>
 </ol>
 <p>If you’re not used to this workflow with git, you can start with some <a href="https://help.github.com/en/github/collaborating-with-issues-and-pull-requests" class="external-link">docs from GitHub</a> or even their <a href="https://try.github.io/" class="external-link">excellent <code>git</code> resources</a>.</p>
-<p>For further information or help, don’t hesitate to get in touch on the <a href="https://support.bioconductor.org/" class="external-link">Bioconductor support site</a> with tag <code>#trackViewer</code>.</p>
+<p>For further information or help, don’t hesitate to get in touch on the <a href="https://support.bioconductor.org/" class="external-link">Bioconductor support site</a> with tag <code>#geomeTriD</code>.</p>
 </div>
 <div class="section level3">
 <h3 id="reporting-bugissues">Reporting bug/issues<a class="anchor" aria-label="anchor" href="#reporting-bugissues"></a>
@@ -163,7 +156,7 @@
 <div class="footnotes footnotes-end-of-document">
 <hr>
 <ol>
-<li id="fn1"><p>Regeneration Center, Duke University, Durham, North Carolina, USA.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn1"><p>Morgridge Institue, Madison, 53715, WI, USA.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
 </ol>
 </div>
 
