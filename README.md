@@ -106,4 +106,4 @@ Many thanks for taking an interest in improving this package. Please
 report bug/issues at
 [jianhong/geomeTriD_documentation/issues](https://github.com/jianhong/geomeTriD_documentation/issues).
 
-[^1]: Morgridge Institue, Madison, 53715, WI, USA.
+[^1]: Morgridge Institute, Madison, 53715, WI, USA.
