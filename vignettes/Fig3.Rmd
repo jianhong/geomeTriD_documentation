@@ -143,7 +143,7 @@ gis <- lapply(hics, function(.ele){
 ShRec3D can handler very sparse matrix, here we use the MAPS normalized matrix as input contact matrix.
 
 ```{r ShRec3D, warning=FALSE, message=FALSE}
-## list all FLAMINGO output files
+## list all ShRec3D output files
 superRec <- dir(extdata, pattern="SuperRec.*.chr5.rds", full.names = TRUE)
 names(superRec) <- 
   sub('SuperRec.(.*).chr5.rds', '\\1',basename(superRec))

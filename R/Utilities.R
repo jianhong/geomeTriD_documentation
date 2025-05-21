@@ -2,7 +2,7 @@
 #' @description
 #' Import genomic signals for given range.
 #' @param paths Vector of character. File path
-#' @param range GRanges object. The coordinates.
+#' @param range \link[GenomicRanges:GRanges-class]{GRanges} object. The coordinates.
 #' @param cols The colors for each signal.
 #' @param format The format of the file.
 #' @return A list of track object
@@ -35,7 +35,7 @@ downloadFiles <- function(urls){
 #' @description
 #' Download files and import signals.
 #' @param urls Vector of character. URLs.
-#' @param range GRanges object. The coordinates.
+#' @param range \link[GenomicRanges:GRanges-class]{GRanges} object. The coordinates.
 #' @param cols The colors for each signal.
 #' @param format The format of the file.
 #' @return A list of track object
@@ -75,11 +75,124 @@ importFLAMINGO <- function(filenames){
   GRangesList(gr)
 }
 
+#' Import Tensor-FLAMINGO output
+#' @description
+#' Import Tensor-FLAMINGO output to a GRangesList Object
+#' @param filenames Vector of character. The file names of output of Tensor-FLAMINGO.
+#' @param binsize Bin size of the interaction. It will be the width of 
+#' GRanges. 
+#' @param chr Chromosome name
+#' @return An object of GRangesList
+#' @importFrom GenomicRanges GRanges GRangesList
+#' @importFrom IRanges IRanges
+#' @importFrom utils read.delim
+#' @export
+#' @examples
+#' # example code
+#' 
+importTensorFLAMINGO <- function(filenames, binsize, chr){
+  stopifnot(is.numeric(binsize))
+  stopifnot(is.character(chr))
+  dat <- lapply(filenames, function(.ele) read.delim(.ele, header = FALSE))
+  gr <- lapply(dat, function(.ele){
+    with(.ele, GRanges(chr, IRanges(as.numeric(V1)*binsize+1, width = binsize), 
+                       x=as.numeric(V2), y=as.numeric(V3), z=as.numeric(V4)))
+  })
+  GRangesList(gr)
+}
+
+#' Import SuperRec output
+#' @description
+#' Import SuperRec output to a GRangesList Object
+#' @param filenames Vector of character. The file names of output of SuperRec
+#' @param superRecInputFilenames Vector of character.
+#'  The filenames of input of SuperRec.
+#' @param binsize Bin size of the interaction. It will be the width of 
+#' GRanges. 
+#' @param chr Chromosome name
+#' @return An object of GRangesList
+#' @importFrom GenomicRanges GRanges GRangesList
+#' @importFrom IRanges IRanges
+#' @importFrom utils read.delim
+#' @export
+#' @examples
+#' # example code
+#' 
+importSuperRec <- function(filenames, superRecInputFilenames, binsize, chr){
+  stopifnot(is.numeric(binsize))
+  stopifnot(is.character(chr))
+  stopifnot(length(filenames)==length(superRecInputFilenames))
+  dat <- lapply(filenames, function(.ele) read.delim(.ele, header = FALSE))
+  input <- lapply(superRecInputFilenames, function(.ele) read.table(.ele, header = FALSE))
+  gr <- mapply(dat, input, FUN=function(.ele, .loci){
+    .loci <- sort(unique(c(.loci[, 1], .loci[, 2])))
+    with(.ele, GRanges(chr, IRanges(.loci[seq.int(nrow(.ele))]*binsize+1, width=binsize), 
+                       x=as.numeric(V1), y=as.numeric(V2), z=as.numeric(V3)))
+  }, SIMPLIFY = FALSE)
+  GRangesList(gr)
+}
+
+#' Import Hickit output
+#' @description
+#' Import 3dg file from Hickit output to a GRangesList Object
+#' @param filenames Vector of character. The 3dg file names of output of Hickit
+#' @param comment.char,... parameters pass to \link[utils:read.table]{rea.delim}.
+#' @param parental_postfix the postfix of chromosome names. Default is 
+#' c("(pat)", "(mat)"). 
+#' For hickit, it maybe c('a', 'b').
+#' @return An object of GRangesList
+#' @importFrom GenomicRanges GRanges GRangesList
+#' @importFrom IRanges IRanges
+#' @importFrom utils read.delim
+#' @export
+#' @examples
+#' f3dg <- system.file('extdata', 'GSE162511',
+#'  'GSM4382149_cortex-p001-cb_001.20k.1.clean.3dg.txt.gz',
+#'   package='geomeTriD_documentation')
+#' xyz <- import3dg(f3dg)
+import3dg <- function(filenames, comment.char="#", ...,
+                      parental_postfix=c("(pat)", "(mat)")){
+  stopifnot(length(parental_postfix)==2)
+  stopifnot(is.character(parental_postfix))
+  dat <- lapply(filenames, function(.ele) read.delim(.ele, header = FALSE,
+                                                     comment.char=comment.char,
+                                                     ...))
+  gr <- lapply(dat, function(.ele){
+    .ele <- split(.ele, .ele$V1)
+    .ele <- lapply(.ele, function(.e){
+      w <- .e$V2[-1] - .e$V2[-length(.e$V2)]
+      w <- c(w, w[length(w)])
+      .e$wid <- w
+      .e
+    })
+    .ele <- do.call(rbind, .ele)
+    
+    parental1 <- grepl(parental_postfix[1], .ele[, 1])
+    parental2 <- grepl(parental_postfix[2], .ele[, 1])
+    if(any(parental1) | any(parental2)){
+      .ele$parental[parental1] <- parental_postfix[1]
+      .ele$parental[parental2] <- parental_postfix[2]
+      .ele$parental[!(parental1|parental2)] <- NA
+      parental_postfix <- gsub('\\(|\\)', '.', parental_postfix)
+      .ele$V1 <- sub(paste0(parental_postfix[2], '$'), '',
+                     sub(paste0(parental_postfix[1], '$'), '',
+                           .ele$V1))
+    }else{
+      .ele$parental <- NA
+    }
+    
+    with(.ele, GRanges(V1, IRanges(as.numeric(V2)+1, width=wid), 
+                       x=as.numeric(V3), y=as.numeric(V4), z=as.numeric(V5),
+                       parental=parental))
+  })
+  GRangesList(gr)
+}
+
 #' Import genomic interactions from URL
 #' @description
 #' Download files and import interactions
 #' @param urls Vector of character. URLs.
-#' @param range GRanges object. The coordinates.
+#' @param range \link[GenomicRanges:GRanges-class]{GRanges} object. The coordinates.
 #' @param resolution The resolution of the matrix.
 #' @param format The format of the file.
 #' @param normalization Normalization matrix in the file.
@@ -102,4 +215,47 @@ importGInteractionsFromUrl <- function(urls, resolution, range,
                                out = 'GInteractions')
     dat
   })
+}
+
+#' Create annotation features
+#' @description
+#' Generate annotation features (feature.gr for \link[geomeTriD]{view3dStructure})
+#' from TxDb and Org object.
+#' @param txdb An \link[GenomicFeatures:TxDb-class]{TxDb} object.
+#' @param org An \link[AnnotationDbi:AnnotationDb-objects]{OrgDb} object.
+#' @param range \link[GenomicRanges:GRanges-class]{GRanges} object. The coordinates.
+#' @param geneSymbolColumn,keytype The column names in the OrgDb for key of TxDb
+#' and the gene symnbols.
+#' @param cols The colors for each gene.
+#' @return A \link[GenomicRanges:GRanges-class]{GRanges} object
+#' @export
+#' @importFrom GenomicFeatures genes
+#' @importFrom IRanges subsetByOverlaps
+#' @examples
+#' # example code
+#' 
+getFeatureGR <- function(txdb, org, range,
+                         keytype='ENTREZID',
+                         geneSymbolColumn = 'SYMBOL',
+                         cols=seq.int(7)){
+  stopifnot(is(txdb, "TxDb"))
+  stopifnot(is(org, 'OrgDb'))
+  stopifnot(is(range, 'GRanges'))
+  #### get all genes
+  feature.gr <- genes(txdb)
+  #### subset the data by target viewer region
+  feature.gr <- subsetByOverlaps(feature.gr, range)
+  if(length(feature.gr)){
+    #### assign symbols for each gene
+    symbols <- select(org, 
+                      feature.gr$gene_id,
+                      columns= geneSymbolColumn,
+                      keytype = keytype)
+    feature.gr$label <- symbols[match(feature.gr$gene_id, symbols[, keytype]),
+                                geneSymbolColumn]
+    #### assign colors for each gene
+    feature.gr$col <- sample(cols, length(feature.gr), replace = TRUE)
+    feature.gr$type <- 'gene'
+  }
+  return(feature.gr)
 }
