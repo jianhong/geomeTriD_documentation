@@ -17,7 +17,7 @@ importGInteractionsFromUrl(
 
 \item{resolution}{The resolution of the matrix.}
 
-\item{range}{GRanges object. The coordinates.}
+\item{range}{\link[GenomicRanges:GRanges-class]{GRanges} object. The coordinates.}
 
 \item{format}{The format of the file.}
 

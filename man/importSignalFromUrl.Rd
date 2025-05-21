@@ -9,7 +9,7 @@ importSignalFromUrl(urls, range, cols, format = "BigWig")
 \arguments{
 \item{urls}{Vector of character. URLs.}
 
-\item{range}{GRanges object. The coordinates.}
+\item{range}{\link[GenomicRanges:GRanges-class]{GRanges} object. The coordinates.}
 
 \item{cols}{The colors for each signal.}
 

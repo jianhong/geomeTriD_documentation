@@ -9,7 +9,7 @@ importGenomicSigs(paths, range, cols, format = "BigWig")
 \arguments{
 \item{paths}{Vector of character. File path}
 
-\item{range}{GRanges object. The coordinates.}
+\item{range}{\link[GenomicRanges:GRanges-class]{GRanges} object. The coordinates.}
 
 \item{cols}{The colors for each signal.}
 
