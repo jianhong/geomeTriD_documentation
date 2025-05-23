@@ -9,6 +9,7 @@
 #' @export
 #' @importFrom methods is
 #' @importFrom trackViewer importScore setTrackStyleParam
+#' @importFrom R.utils gunzip
 #' @examples
 #' # example code
 #' 
@@ -17,6 +18,13 @@ importGenomicSigs <- function(paths, range, cols, format='BigWig'){
   stopifnot(is.character(paths) || is.character(unlist(paths)))
   stopifnot(is(range, 'GRanges'))
   mapply(paths, cols, format, FUN=function(p, color, f){
+    if(grepl('.gz$', p)){
+      tmp <- sub('.gz$', '', p)
+      tryCatch(gunzip(p, destname=tmp, remove=FALSE), error=function(.e){
+        message(.e, 'File may be decompressed already.')
+      })
+      p <- tmp
+    }
     dat <- importScore(p, format=f, ranges=range)
     setTrackStyleParam(dat, 'color', color)
     dat
@@ -258,4 +266,24 @@ getFeatureGR <- function(txdb, org, range,
     feature.gr$type <- 'gene'
   }
   return(feature.gr)
+}
+
+#' Show a pair of geometries
+#' @description
+#' Show a pair of geometries side by side.
+#' @param a,b A list of \link[geomeTriD:threeJsGeometry-class	]{threeJsGeometry} object.
+#' @param height The height of the widgets.
+#' @param ... The parameter for \link[geomeTriD:threeJsViewer]{threeJsViewer}.
+#' @return A \link[GenomicRanges:GRanges-class]{GRanges} object
+#' @export
+#' @importFrom geomeTriD threeJsViewer
+#' @examples
+#' # example code
+#' 
+showPairs <- function(a, b, height = '95vh', ...){
+  b <- lapply(b, function(.ele) {
+    .ele$side = 'right'
+    .ele
+  })
+  threeJsViewer(a, b, height=height, ...)
 }

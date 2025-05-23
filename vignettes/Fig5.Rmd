@@ -1,0 +1,206 @@
+---
+title: "Figure 5 Vignette"
+author: "Jianhong Ou"
+vignette: >
+  %\VignetteIndexEntry{Figure 5 Vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+output:
+  html_document:
+  theme: simplex
+  toc: true
+  toc_float: true
+  toc_depth: 4
+  fig_caption: true
+---
+
+```{r setup, include=FALSE}
+suppressPackageStartupMessages({
+  library(geomeTriD)
+  library(geomeTriD.documentation)
+  library(GenomicRanges)
+  library(TxDb.Hsapiens.UCSC.hg38.knownGene)
+  library(org.Hs.eg.db)
+  library(clusterCrit)
+})
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Figure 5
+
+The Figure 5 is the showcase for `geomeTriD` package to present multiple genomic 
+signals along with 3D models for topologically associating domain (TADs). 
+
+## Load Libraries
+
+```{r loadLibrary}
+library(geomeTriD)
+library(geomeTriD.documentation)
+library(GenomicRanges)
+library(TxDb.Hsapiens.UCSC.hg38.knownGene)
+library(org.Hs.eg.db)
+library(clusterCrit)
+```
+
+## Load data and annotations
+The data were from [diffraction-limited experiments for IMR90 cells](https://doi.org/10.1126/science.aau1783).
+
+```{r}
+## xyz is from diffraction-limited experiments but not the actual xyz cords of STORM experiments.
+xyz <- read.csv('https://github.com/BogdanBintu/ChromatinImaging/raw/refs/heads/master/Data/IMR90_chr21-28-30Mb.csv', skip = 1)
+xyz.s <- split(xyz[, -1], xyz$Chromosome.index)
+head(xyz.s[[1]])
+xyz.s <- xyz.s[seq.int(100)] ## subset the dataset for test run
+xyzs <- lapply(xyz.s, function(.ele) .ele[, -1])
+
+### Assign TADs 
+boundary <- c(28.015, 28.300, 28.510, 28.660, 28.945, 29.050, 29.2)
+TADs <- GRanges('chr21', IRanges(boundary[-length(boundary)]*1e6+1,
+                                 boundary[-1]*1e6))
+TADs$col <- c('red', 'cyan', 'orange', 'green', 'grey', 'purple') 
+
+range <- GRanges("chr21:28000001-29200000")
+### get feature annotations
+feature.gr <- getFeatureGR(txdb = TxDb.Hsapiens.UCSC.hg38.knownGene,
+                           org = org.Hs.eg.db,
+                           range = range)
+
+### get genomic signals, we will use called peaks
+colorSets <- c(CTCF="cyan",YY1="yellow",
+               RAD21="red", SMC1A="green", SMC3="blue")
+prefix <- 'https://www.encodeproject.org/files/'
+imr90_url <- c(ctcf = 'ENCFF203SRF/@@download/ENCFF203SRF.bed.gz',
+               smc3 = 'ENCFF770ISZ/@@download/ENCFF770ISZ.bed.gz',
+               rad21 = 'ENCFF195CYT/@@download/ENCFF195CYT.bed.gz')
+imr90_urls <- paste0(prefix, imr90_url)
+names(imr90_urls) <- names(imr90_url)
+# download the files and import the signals
+imr90_genomicSigs <- importSignalFromUrl(imr90_urls, range = range,
+                                         cols = list(
+                                           'ctcf'=c('#111100', 'cyan'),
+                                           'smc3'=c('#000011', 'blue'),
+                                           'rad21'=c('#110000', 'red')),
+                                         format = 'BED')
+## cluster the cells
+cd <- cellDistance(xyzs)
+cc <- cellClusters(cd)
+## check the best number of clusters
+plotDBI_CHI <- function(tree, dist, ks=2:10){
+  cell_groups_labels <- lapply(ks, cutree, tree=tree)
+  ## Davies–Bouldin Index: 
+  ##          Measures intra-cluster similarity and inter-cluster difference.
+  ## Calinski-Harabasz Index (Variance Ratio Criterion):
+  ##          Ratio of between-cluster dispersion to within-cluster dispersion.
+  dbi <- lapply(cell_groups_labels, intCriteria, traj = as.matrix(dist),
+                crit = c("Davies_Bouldin", "Calinski_Harabasz"))
+  dbi <- do.call(rbind, dbi)
+  ## davies_bouldin_index, the lower the better, black line
+  ## calinski_harabasz_index, the higher the better, red line
+  matplot(ks, dbi, type = 'o') 
+  legend('topright', legend = colnames(dbi), 
+         col = 1:2, lty = 1:2, text.col = 1:2)
+}
+plotDBI_CHI(cc, cd)
+
+cell_groups <- cutree(cc, k=3)
+#cell_groups[c(5, 94)]
+## use the mean value to represent 3D structure in each group
+groupMeansXYZ <- function(xyz.s){ ## help function to get the means value
+  cg_xyz <- split(lapply(xyz.s, fill_NA), cell_groups)
+  cg_xyz <- lapply(cg_xyz, function(.ele){
+    x <- rowMeans(do.call(cbind, lapply(.ele, function(.e){
+      .e[, 'x']
+    })), na.rm=TRUE)
+    y <- rowMeans(do.call(cbind, lapply(.ele, function(.e){
+      .e[, 'y']
+    })), na.rm=TRUE)
+    z <- rowMeans(do.call(cbind, lapply(.ele, function(.e){
+      .e[, 'z']
+    })), na.rm=TRUE)
+    data.frame(Segment.index=.ele[[1]][, 1], x=x, y=y, z=z)
+  })
+}
+cg_xyz <- groupMeansXYZ(xyz.s)
+
+st <- function(i, offset=28000001, interval=30000){ ## help function to get the coordinates in genome.
+  return(interval*i+offset)
+}
+## add genomic coordinates to XYZ matrix and make a GRanges object
+cg_xyz <- lapply(cg_xyz, function(.ele){
+  .ele$Segment.index <- seq.int(nrow(.ele))
+  with(.ele, GRanges('chr21', IRanges(st(.ele$Segment.index-1, offset=start(range)), width = 30000),
+                     x=x, y=y, z=z))
+})
+## visualize the grouped structures.
+grouped_cell <- lapply(cg_xyz, function(cell){
+  cell <- view3dStructure(cell, feature.gr=feature.gr, genomicSigs = imr90_genomicSigs, renderer = 'none', region = range, show_coor=TRUE, lwd.backbone = 0.25, reverseGenomicSigs = FALSE, lwd.maxGenomicSigs = 16, cluster3Dpoints=FALSE)
+  ## add TAD for better understanding the 3D model
+  backbone <- extractBackbonePositions(cell)
+  tad <- createTADGeometries(TADs, backbone, type = 'segment', lwd = 9)
+  c(cell, tad)
+})
+
+threeJsViewer(grouped_cell[[1]])
+threeJsViewer(grouped_cell[[2]])
+threeJsViewer(grouped_cell[[3]])
+```
+```{r}
+# Fig. S7
+xyz <- read.csv('https://github.com/BogdanBintu/ChromatinImaging/raw/refs/heads/master/Data/IMR90_chr21-18-20Mb.csv', skip = 1)
+xyz.s <- split(xyz[, -1], xyz$Chromosome.index)
+xyz.s <- xyz.s[seq.int(200)]
+
+range_18_20 <- GRanges("chr21:18627683-20577682")
+imr90_18_20 <- lapply(xyz.s, function(.ele){
+  with(.ele, GRanges('chr21', IRanges(st(.ele$Segment.index-1, offset=start(range_18_20)), width = 30000),
+                     x=X, y=Y, z=Z))
+})
+feature.gr_18_20 <- getFeatureGR(txdb = TxDb.Hsapiens.UCSC.hg38.knownGene,
+                                 org = org.Hs.eg.db,
+                                 range = range_18_20)
+
+## create even distributed TADs to help visualization.
+TADs_18_20 <- GRanges('chr21', IRanges(st(seq.int(7)-1, offset=start(range_18_20), interval = 300000), width = 300000))
+TADs_18_20$col <- rev(c('blue', 'purple', 'cyan', 'green', 'yellow', 'brown', 'red'))
+
+xyzs <- lapply(xyz.s, function(.ele) .ele[, -1])
+cd <- cellDistance(xyzs)
+cc <- cellClusters(cd)
+
+## check the best number of clusters
+plotDBI_CHI(cc, cd)
+
+cell_groups <- cutree(cc, k=7)
+
+cg_xyz <- groupMeansXYZ(xyz.s)
+
+## get correlation among the groups
+cd_group <- cellDistance(cg_xyz)
+heatmap(as.matrix(cd_group))
+
+cg_xyz <- lapply(cg_xyz, function(.ele){
+  .ele$Segment.index <- seq.int(nrow(.ele))
+  with(.ele, GRanges('chr21', IRanges(st(.ele$Segment.index-1, offset=start(range_18_20)), width = 30000),
+                     x=x, y=y, z=z))
+})
+grouped_cell_18_20 <- lapply(cg_xyz, function(cell){
+  cell <- alignCoor(cell, cg_xyz[[1]])
+  cell <- view3dStructure(cell, feature.gr=feature.gr_18_20, renderer = 'none', region = range_18_20, show_coor=TRUE, lwd.backbone = 0.25, reverseGenomicSigs = FALSE, lwd.maxGenomicSigs = 8, cluster3Dpoints=FALSE)
+  ## add TAD for better understanding the 3D model
+  backbone <- extractBackbonePositions(cell)
+  tad <- createTADGeometries(TADs_18_20, backbone, type = 'segment', lwd = 9)
+  c(cell, tad)
+})
+
+showPairs(grouped_cell_18_20[[5]], grouped_cell_18_20[[7]], height = NULL) # 
+showPairs(grouped_cell_18_20[[3]], grouped_cell_18_20[[4]], height = NULL)
+showPairs(grouped_cell_18_20[[1]], grouped_cell_18_20[[6]], height = NULL)
+threeJsViewer(grouped_cell_18_20[[2]])
+```
+
+
+## SessionInfo
+
+```{r sessionInfo}
+sessionInfo()
+```

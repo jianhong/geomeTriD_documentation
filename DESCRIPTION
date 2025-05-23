@@ -8,15 +8,15 @@ Description: The data and scripts to help users to generate plots.
 BugReports: https://github.com/jianhong/geomeTriD_documentation/issues
 URL: https://jianhong.github.io/geomeTriD_documentation
 Depends: R (>= 4.4.0)
-Imports: trackViewer, GenomicRanges,
-         BiocFileCache, IRanges, methods, utils
+Imports: trackViewer, GenomicRanges, geomeTriD,
+         BiocFileCache, IRanges, methods, utils, R.utils
 Suggests: knitr, rmarkdown, pkgdown, bookdown, pander,
     ChIPpeakAnno, GenomeInfoDb, GenomicFeatures, InteractionSet,
     RColorBrewer, TxDb.Drerio.UCSC.danRer10.refGene,
-    TxDb.Hsapiens.UCSC.hg19.knownGene,
+    TxDb.Hsapiens.UCSC.hg19.knownGene, TxDb.Hsapiens.UCSC.hg38.knownGene,
     TxDb.Mmusculus.UCSC.mm39.knownGene, biomaRt, grid,
     org.Dr.eg.db, org.Hs.eg.db, org.Mm.eg.db, rgl,
-    rtracklayer, txdbmaker
+    rtracklayer, txdbmaker, clusterCrit
 License: MIT + file LICENSE
 Encoding: UTF-8
 VignetteBuilder: knitr

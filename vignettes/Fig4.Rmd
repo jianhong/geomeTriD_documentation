@@ -1,0 +1,136 @@
+---
+title: "Figure 4 Vignette"
+author: "Jianhong Ou"
+vignette: >
+  %\VignetteIndexEntry{Figure 4 Vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+output:
+  html_document:
+  theme: simplex
+  toc: true
+  toc_float: true
+  toc_depth: 4
+  fig_caption: true
+---
+
+```{r setup, include=FALSE}
+suppressPackageStartupMessages({
+  library(geomeTriD)
+  library(geomeTriD.documentation)
+  library(GenomicRanges)
+})
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Figure 4
+
+Figure 4 showcases the `geomeTriD` package, demonstrating how it presents 3D models generated from Dip-C.
+
+## Load Libraries
+
+```{r loadLibrary}
+library(geomeTriD)
+library(geomeTriD.documentation)
+library(GenomicRanges)
+```
+
+## Load and plot data
+This data were downloaded from GEO with accession [GSE117874](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSM3314361).
+
+```{r}
+## set the data folder, all data are available in the extdata folder of this package
+extdata <- system.file('extdata', 'GSE117874', package='geomeTriD.documentation')
+hickit_3dg <- dir(extdata, '3dg', full.names = TRUE)
+hickit <- import3dg(hickit_3dg, parental_postfix=c('a', 'b'))[[1]]
+## split it into maternal and paternal 3D structures.
+hickit.a <- hickit[hickit$parental=='a'] ## mat
+hickit.b <- hickit[hickit$parental=='b'] ## pat
+## delete the parental information
+hickit.a$parental <- hickit.b$parental <- NULL
+## set data range
+range <- GRanges('X:1-155270560')
+## prepare the coordinates for the four superloops. 
+features <- GRanges(c('X:56800000-56850000',
+                      'X:75350000-75400000',
+                      'X:115000000-115050000',
+                      'X:130850000-130900000'))
+names(features) <- c('ICCE', 'x75', 'DXZ4', 'FIRRE')
+features$label <- names(features)
+features$col <- 2:5 ## set colors for each element
+features$type <- 'gene' ## set it as gene
+## add the superloops as segments
+c1 <- view3dStructure(hickit.a,
+                      feature.gr=features,
+                      renderer = 'none',
+                      region = range,
+                      resolution=3,
+                      show_coor=FALSE,
+                      lwd.backbone = 0.25,
+                      lwd.gene=6)
+c2 <- view3dStructure(hickit.b,
+                      feature.gr=features,
+                      renderer = 'none',
+                      region = range,
+                      resolution=3,
+                      show_coor=FALSE,
+                      lwd.backbone = 0.25,
+                      lwd.gene=6)
+c2 <- lapply(c2, function(.ele) { ## put pat to right pannel
+  .ele$side = 'right'
+  .ele
+})
+## view the data
+threeJsViewer(c1, c2, title = c('GM12878 cell 3 mat', 'GM12878 cell 3 pat'))
+#widget <-threeJsViewer(c1, c2, title = c('mat', 'pat'))
+#tempfile <- 'Fig4.html'
+#htmlwidgets::saveWidget(widget, file=tempfile)
+#utils::browseURL(tempfile)
+```
+```{r}
+## view the superloops as spheres
+addFeaturesAsSphere <- function(obj, features, ...){
+  backbone <- extractBackbonePositions(obj)
+  spheres <- createTADGeometries(features, backbone, ...)
+  c(obj, spheres)
+}
+mat <- view3dStructure(hickit.a, renderer = 'none', region = range,
+                       resolution=3, show_coor=FALSE, lwd.backbone = 0.25)
+mat <- addFeaturesAsSphere(mat, features, alpha = 0.5)
+pat <- view3dStructure(hickit.b, renderer = 'none', region = range,
+                       resolution=3, show_coor=FALSE, lwd.backbone = 0.25)
+pat <- addFeaturesAsSphere(pat, features, alpha = 0.5)
+showPairs(mat, pat, title = c('GM12878 cell 3 mat', 'GM12878 cell 3 pat'), height = NULL)
+```
+
+## Plot all cells to show the cell heterogeneity
+```{r}
+## load the processed data.
+hickit.a <- readRDS(file.path(extdata, 'hickit.a.rds'))
+hickit.b <- readRDS(file.path(extdata, 'hickit.b.rds'))
+widgets <- mapply(function(a, b, i){
+  mat <- view3dStructure(a, renderer = 'none', region = range,
+                         resolution=1, show_coor=FALSE, lwd.backbone = 0.25)
+  mat <- addFeaturesAsSphere(mat, features, alpha = 0.5)
+  pat <- view3dStructure(b, renderer = 'none', region = range,
+                         resolution=1, show_coor=FALSE, lwd.backbone = 0.25)
+  pat <- addFeaturesAsSphere(pat, features, alpha = 0.5)
+  showPairs(mat, pat, title = paste('cell', i, c('mat', 'pat')),
+            background = c("#11111188",
+                           "#222222DD",
+                           "#222222DD",
+                           "#11111188"),
+            height = NULL)
+}, hickit.a, hickit.b, names(hickit.a), SIMPLIFY = FALSE)
+
+widgets[[1]]
+widgets[[5]]
+
+```
+
+
+## SessionInfo
+
+```{r sessionInfo}
+sessionInfo()
+```
