@@ -287,3 +287,49 @@ showPairs <- function(a, b, height = '95vh', ...){
   })
   threeJsViewer(a, b, height=height, ...)
 }
+
+#' Aggregate xyz values by xyz group
+#' @description
+#' Aggregate the corresponding xyz values of xyz values for each xyz group
+#' by given function.
+#' @param xyz.list A list of list with xyz values.
+#' @param FUN The function for aggregate the values.
+#' @param na.rm Remove the NA values or not. If TRUE, NA values will not be 
+#' considered. Otherwise, the NA values will be filled with the mean of
+#' nearby values.
+#' @param ... Other parameters for the FUN.
+#' @return A list of xyz.
+#' @importFrom geomeTriD fill_NA
+#' @export
+#' 
+aggregateXYZs <- function(xyz.list, FUN=mean, na.rm=TRUE, ...){
+  stopifnot(is.list(xyz.list))
+  xyz.list <- lapply(xyz.list, function(xyzs){
+    lapply(xyzs, function(.ele){
+      if(!(is.matrix(.ele) || is.data.frame(.ele))){
+        stop("The elements for each group in xyz.list must be a matrix or data.frame.")
+      }
+      colnames(.ele) <- tolower(colnames(.ele))
+      if(!all(c('x', 'y', 'z') %in% colnames(.ele))){
+        stop('The elements fro each group in xyz.list must contain colnames "x", "y" and "z".')
+      }
+      .ele
+    })
+  })
+  if(!na.rm){
+    xyz.list <- lapply(xyz.list, fill_NA)
+  }
+  
+  cg_xyz <- lapply(xyz.list, function(.ele){
+    xyz <- lapply(c('x', 'y', 'z'), function(coln){
+      x <- apply(do.call(cbind, lapply(.ele, function(.e){
+        .e[, coln]
+      })), 1, FUN, na.rm = na.rm, ...)
+    })
+    .ele <- as.data.frame(.ele[[1]])
+    .ele$x <- xyz[[1]]
+    .ele$y <- xyz[[2]]
+    .ele$z <- xyz[[3]]
+    .ele
+  })
+}

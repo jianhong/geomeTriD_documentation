@@ -22,6 +22,8 @@ suppressPackageStartupMessages({
   library(TxDb.Hsapiens.UCSC.hg38.knownGene)
   library(org.Hs.eg.db)
   library(clusterCrit)
+  library(grid)
+  library(colorRamps)
 })
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -40,6 +42,7 @@ library(GenomicRanges)
 library(TxDb.Hsapiens.UCSC.hg38.knownGene)
 library(org.Hs.eg.db)
 library(clusterCrit)
+library(colorRamps)
 ```
 
 ## Load data and annotations
@@ -48,16 +51,15 @@ The data were from [diffraction-limited experiments for IMR90 cells](https://doi
 ```{r}
 ## xyz is from diffraction-limited experiments but not the actual xyz cords of STORM experiments.
 xyz <- read.csv('https://github.com/BogdanBintu/ChromatinImaging/raw/refs/heads/master/Data/IMR90_chr21-28-30Mb.csv', skip = 1)
+## split the XYZ for each chromosome
 xyz.s <- split(xyz[, -1], xyz$Chromosome.index)
 head(xyz.s[[1]])
-xyz.s <- xyz.s[seq.int(100)] ## subset the dataset for test run
-xyzs <- lapply(xyz.s, function(.ele) .ele[, -1])
 
 ### Assign TADs 
 boundary <- c(28.015, 28.300, 28.510, 28.660, 28.945, 29.050, 29.2)
 TADs <- GRanges('chr21', IRanges(boundary[-length(boundary)]*1e6+1,
-                                 boundary[-1]*1e6))
-TADs$col <- c('red', 'cyan', 'orange', 'green', 'grey', 'purple') 
+                                 boundary[-1]*1e6),
+                col = c('red', 'cyan', 'orange', 'green', 'grey', 'purple') )
 
 range <- GRanges("chr21:28000001-29200000")
 ### get feature annotations
@@ -81,7 +83,13 @@ imr90_genomicSigs <- importSignalFromUrl(imr90_urls, range = range,
                                            'smc3'=c('#000011', 'blue'),
                                            'rad21'=c('#110000', 'red')),
                                          format = 'BED')
+
+## subset the dataset for sample run
+xyz.s_sub <- xyz.s[seq.int(100)]
+
 ## cluster the cells
+## remove the position information and then calculate the distance among cells
+xyzs <- lapply(xyz.s_sub, function(.ele) .ele[, -1])
 cd <- cellDistance(xyzs)
 cc <- cellClusters(cd)
 ## check the best number of clusters
@@ -101,48 +109,90 @@ plotDBI_CHI <- function(tree, dist, ks=2:10){
          col = 1:2, lty = 1:2, text.col = 1:2)
 }
 plotDBI_CHI(cc, cd)
-
+## split the cells into 3 groups
 cell_groups <- cutree(cc, k=3)
-#cell_groups[c(5, 94)]
 ## use the mean value to represent 3D structure in each group
-groupMeansXYZ <- function(xyz.s){ ## help function to get the means value
-  cg_xyz <- split(lapply(xyz.s, fill_NA), cell_groups)
-  cg_xyz <- lapply(cg_xyz, function(.ele){
-    x <- rowMeans(do.call(cbind, lapply(.ele, function(.e){
-      .e[, 'x']
-    })), na.rm=TRUE)
-    y <- rowMeans(do.call(cbind, lapply(.ele, function(.e){
-      .e[, 'y']
-    })), na.rm=TRUE)
-    z <- rowMeans(do.call(cbind, lapply(.ele, function(.e){
-      .e[, 'z']
-    })), na.rm=TRUE)
-    data.frame(Segment.index=.ele[[1]][, 1], x=x, y=y, z=z)
-  })
-}
-cg_xyz <- groupMeansXYZ(xyz.s)
+xyz.list <- split(xyz.s_sub, cell_groups)
+cg_xyz <- aggregateXYZs(xyz.list, FUN = mean)
 
-st <- function(i, offset=28000001, interval=30000){ ## help function to get the coordinates in genome.
+## help function to get the coordinates in genome.
+st <- function(i, offset=28000001, interval=30000){
   return(interval*i+offset)
 }
 ## add genomic coordinates to XYZ matrix and make a GRanges object
 cg_xyz <- lapply(cg_xyz, function(.ele){
-  .ele$Segment.index <- seq.int(nrow(.ele))
-  with(.ele, GRanges('chr21', IRanges(st(.ele$Segment.index-1, offset=start(range)), width = 30000),
+  with(.ele, GRanges('chr21',
+                     IRanges(st(.ele$segment.index-1, offset=start(range)),
+                             width = 30000),
                      x=x, y=y, z=z))
 })
+
+## apply matlab
+resolution <- 15
+backbone_colors <- rev(rainbow(n=resolution*length(cg_xyz[[1]])))
+
 ## visualize the grouped structures.
 grouped_cell <- lapply(cg_xyz, function(cell){
-  cell <- view3dStructure(cell, feature.gr=feature.gr, genomicSigs = imr90_genomicSigs, renderer = 'none', region = range, show_coor=TRUE, lwd.backbone = 0.25, reverseGenomicSigs = FALSE, lwd.maxGenomicSigs = 16, cluster3Dpoints=FALSE)
+  cell <- view3dStructure(cell, feature.gr=feature.gr,
+                          genomicSigs = imr90_genomicSigs,
+                          reverseGenomicSigs = FALSE,
+                          renderer = 'none', region = range,
+                          show_coor=TRUE,
+                          col.backbone = backbone_colors)
   ## add TAD for better understanding the 3D model
   backbone <- extractBackbonePositions(cell)
   tad <- createTADGeometries(TADs, backbone, type = 'segment', lwd = 9)
   c(cell, tad)
 })
 
-threeJsViewer(grouped_cell[[1]])
-threeJsViewer(grouped_cell[[2]])
-threeJsViewer(grouped_cell[[3]])
+showPairs(grouped_cell[[1]], grouped_cell[[3]],
+          title = c("Cell type 2", "Cell type 1"))
+
+# Fig.5 ABC
+xyzs <- lapply(xyz.s, function(.ele) {
+  .ele <- .ele[c(18, 27, 32), -1]
+  if(any(is.na(.ele))) return(NULL)
+  return(.ele)
+  })
+keep <- lengths(xyzs)>0
+if(FALSE){## to calculate the cell distance for 5K cells will take several hours
+  cd <- cellDistance(xyzs[keep])
+  cc <- cellClusters(cd)
+  cell_groups <- cutree(cc, k=5)
+}else{
+  cell_groups <- readRDS(system.file(
+    'extdata', 'ChromatinImaging', 'Fig5ABCcellgroups.rds',
+    package = 'geomeTriD.documentation'))
+}
+
+
+xyz.list <- split(lapply(xyz.s[keep], fill_NA), cell_groups)
+cg_xyz <- aggregateXYZs(xyz.list)
+
+## add genomic coordinates to XYZ matrix and make a GRanges object
+cg_xyz <- lapply(cg_xyz, function(.ele){
+  with(.ele, GRanges('chr21',
+                     IRanges(st(.ele$Segment.index-1, offset=start(range)),
+                             width = 30000),
+                     x=x, y=y, z=z))
+})
+
+ABC <- GRanges('chr21', IRanges(st(c(18, 27, 32)-1, offset=start(range)), width = 30000),
+               col=c('red', 'cyan', 'yellow'))
+
+## visualize the grouped structures.
+grouped_cell <- lapply(cg_xyz, function(cell){
+  cell <- view3dStructure(cell, feature.gr=feature.gr,
+                          renderer = 'none', region = range,
+                          show_coor=TRUE)
+  ## add A1 B1 C1 to the plot
+  backbone <- extractBackbonePositions(cell)
+  tad <- createTADGeometries(ABC, backbone, type = 'segment', lwd = 9, alpha = 0.5)
+  c(cell, tad)
+})
+
+showPairs(grouped_cell[[1]], grouped_cell[[4]],
+          title = c("A1,B1 do not overlap", "A1,B1 overlap"))
 ```
 ```{r}
 # Fig. S7
@@ -159,43 +209,36 @@ feature.gr_18_20 <- getFeatureGR(txdb = TxDb.Hsapiens.UCSC.hg38.knownGene,
                                  org = org.Hs.eg.db,
                                  range = range_18_20)
 
-## create even distributed TADs to help visualization.
-TADs_18_20 <- GRanges('chr21', IRanges(st(seq.int(7)-1, offset=start(range_18_20), interval = 300000), width = 300000))
-TADs_18_20$col <- rev(c('blue', 'purple', 'cyan', 'green', 'yellow', 'brown', 'red'))
-
 xyzs <- lapply(xyz.s, function(.ele) .ele[, -1])
-cd <- cellDistance(xyzs)
-cc <- cellClusters(cd)
 
-## check the best number of clusters
-plotDBI_CHI(cc, cd)
+resolution <- 10
+backbone_colors <- rev(matlab.like2(n=resolution*nrow(xyzs[[1]])))
 
-cell_groups <- cutree(cc, k=7)
+cells_18_20 <- list()
+for(i in c(9, 56, 8, 26, 59, 15)){
+  try({
+    cell <- imr90_18_20[[i]]
+    cell <- cell[apply(mcols(cell), 1, function(.ele) !any(is.na(.ele)))]
+    cell <- view3dStructure(cell, feature.gr=feature.gr_18_20,
+                            renderer = 'none', region = range_18_20,
+                            show_coor=TRUE, lwd.backbone = 5,
+                            col.backbone=backbone_colors,
+                            resolution=resolution,
+                            length.arrow = unit(0.1, "native"))
+    cells_18_20[[i]] <- cell
+  })
+}
 
-cg_xyz <- groupMeansXYZ(xyz.s)
+threeJsViewer(cells_18_20[[9]]) # cell 1
 
-## get correlation among the groups
-cd_group <- cellDistance(cg_xyz)
-heatmap(as.matrix(cd_group))
+threeJsViewer(cells_18_20[[56]]) # cell 2
 
-cg_xyz <- lapply(cg_xyz, function(.ele){
-  .ele$Segment.index <- seq.int(nrow(.ele))
-  with(.ele, GRanges('chr21', IRanges(st(.ele$Segment.index-1, offset=start(range_18_20)), width = 30000),
-                     x=x, y=y, z=z))
-})
-grouped_cell_18_20 <- lapply(cg_xyz, function(cell){
-  cell <- alignCoor(cell, cg_xyz[[1]])
-  cell <- view3dStructure(cell, feature.gr=feature.gr_18_20, renderer = 'none', region = range_18_20, show_coor=TRUE, lwd.backbone = 0.25, reverseGenomicSigs = FALSE, lwd.maxGenomicSigs = 8, cluster3Dpoints=FALSE)
-  ## add TAD for better understanding the 3D model
-  backbone <- extractBackbonePositions(cell)
-  tad <- createTADGeometries(TADs_18_20, backbone, type = 'segment', lwd = 9)
-  c(cell, tad)
-})
+threeJsViewer(cells_18_20[[8]]) # cell 3
 
-showPairs(grouped_cell_18_20[[5]], grouped_cell_18_20[[7]], height = NULL) # 
-showPairs(grouped_cell_18_20[[3]], grouped_cell_18_20[[4]], height = NULL)
-showPairs(grouped_cell_18_20[[1]], grouped_cell_18_20[[6]], height = NULL)
-threeJsViewer(grouped_cell_18_20[[2]])
+threeJsViewer(cells_18_20[[26]]) # cell 4
+
+threeJsViewer(cells_18_20[[15]]) # cell 5
+
 ```
 
 
