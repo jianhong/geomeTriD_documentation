@@ -19,13 +19,21 @@ suppressPackageStartupMessages({
   library(geomeTriD)
   library(geomeTriD.documentation)
   library(GenomicRanges)
+  library(TxDb.Hsapiens.UCSC.hg38.knownGene)
+  library(org.Hs.eg.db)
+  library(clusterCrit)
+  library(grid)
+  library(colorRamps)
+  library(TxDb.Mmusculus.UCSC.mm10.knownGene)
+  library(org.Mm.eg.db)
+  library(geometry)
 })
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Figure 4
 
-Figure 4 showcases the `geomeTriD` package, demonstrating how it presents 3D models generated from Dip-C.
+Figure 4 showcases the geomeTriD package, demonstrating how it presents 3D models generated from [Dip-C](https://doi.org/10.1126/science.aat5641).
 
 ## Load Libraries
 
@@ -33,10 +41,16 @@ Figure 4 showcases the `geomeTriD` package, demonstrating how it presents 3D mod
 library(geomeTriD)
 library(geomeTriD.documentation)
 library(GenomicRanges)
+library(TxDb.Hsapiens.UCSC.hg38.knownGene)
+library(org.Hs.eg.db)
+library(clusterCrit)
+library(colorRamps)
 ```
 
-## Load and plot data
-This data were downloaded from GEO with accession [GSE117874](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSM3314361).
+## present single cell 3D structure for human data
+
+### Load and plot data
+This data were downloaded from GEO with accession [GSE117874](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE117874).
 
 ```{r}
 ## set the data folder, all data are available in the extdata folder of this package
@@ -51,30 +65,39 @@ hickit.a$parental <- hickit.b$parental <- NULL
 ## set data range
 range <- GRanges('X:1-155270560')
 ## prepare the coordinates for the four superloops. 
-features <- GRanges(c('X:56800000-56850000',
+supperloops <- GRanges(c('X:56800000-56850000',
                       'X:75350000-75400000',
                       'X:115000000-115050000',
                       'X:130850000-130900000'))
-names(features) <- c('ICCE', 'x75', 'DXZ4', 'FIRRE')
-features$label <- names(features)
-features$col <- 2:5 ## set colors for each element
-features$type <- 'gene' ## set it as gene
+names(supperloops) <- c('ICCE', 'x75', 'DXZ4', 'FIRRE')
+supperloops$label <- names(supperloops)
+supperloops$col <- 2:5 ## set colors for each element
+supperloops$type <- 'gene' ## set it as gene
+## subset the data by given range
+hickit.a <- subsetByOverlaps(hickit.a, range)
+hickit.b <- subsetByOverlaps(hickit.b, range)
+hickit.a <- alignCoor(hickit.a, hickit.b)
+## prepare the backbone colors
+resolution <- 3
+backbone_colors <- matlab.like2(n=resolution*length(hickit.a))
 ## add the superloops as segments
 c1 <- view3dStructure(hickit.a,
-                      feature.gr=features,
+                      feature.gr=supperloops,
                       renderer = 'none',
                       region = range,
-                      resolution=3,
+                      resolution=resolution,
                       show_coor=FALSE,
                       lwd.backbone = 0.25,
+                      col.backbone = backbone_colors,
                       lwd.gene=6)
 c2 <- view3dStructure(hickit.b,
-                      feature.gr=features,
+                      feature.gr=supperloops,
                       renderer = 'none',
                       region = range,
-                      resolution=3,
+                      resolution=resolution,
                       show_coor=FALSE,
                       lwd.backbone = 0.25,
+                      col.backbone = backbone_colors,
                       lwd.gene=6)
 c2 <- lapply(c2, function(.ele) { ## put pat to right pannel
   .ele$side = 'right'
@@ -95,26 +118,33 @@ addFeaturesAsSphere <- function(obj, features, ...){
   c(obj, spheres)
 }
 mat <- view3dStructure(hickit.a, renderer = 'none', region = range,
-                       resolution=3, show_coor=FALSE, lwd.backbone = 0.25)
-mat <- addFeaturesAsSphere(mat, features, alpha = 0.5)
+                       resolution=resolution, show_coor=FALSE,
+                       lwd.backbone = 0.25,
+                       col.backbone = backbone_colors)
+mat <- addFeaturesAsSphere(mat, supperloops, alpha = 0.5)
 pat <- view3dStructure(hickit.b, renderer = 'none', region = range,
-                       resolution=3, show_coor=FALSE, lwd.backbone = 0.25)
-pat <- addFeaturesAsSphere(pat, features, alpha = 0.5)
+                       resolution=resolution, show_coor=FALSE,
+                       lwd.backbone = 0.25,
+                       col.backbone = backbone_colors)
+mat <- addFeaturesAsSphere(mat, supperloops, alpha = 0.5)
+pat <- addFeaturesAsSphere(pat, supperloops, alpha = 0.5)
 showPairs(mat, pat, title = c('GM12878 cell 3 mat', 'GM12878 cell 3 pat'), height = NULL)
 ```
 
-## Plot all cells to show the cell heterogeneity
+### Plot all cells to show the cell heterogeneity
 ```{r}
 ## load the processed data.
 hickit.a <- readRDS(file.path(extdata, 'hickit.a.rds'))
 hickit.b <- readRDS(file.path(extdata, 'hickit.b.rds'))
 widgets <- mapply(function(a, b, i){
   mat <- view3dStructure(a, renderer = 'none', region = range,
-                         resolution=1, show_coor=FALSE, lwd.backbone = 0.25)
-  mat <- addFeaturesAsSphere(mat, features, alpha = 0.5)
+                         resolution=resolution, show_coor=FALSE, lwd.backbone = 0.25,
+                      col.backbone = backbone_colors)
+  mat <- addFeaturesAsSphere(mat, supperloops, alpha = 0.5)
   pat <- view3dStructure(b, renderer = 'none', region = range,
-                         resolution=1, show_coor=FALSE, lwd.backbone = 0.25)
-  pat <- addFeaturesAsSphere(pat, features, alpha = 0.5)
+                         resolution=resolution, show_coor=FALSE, lwd.backbone = 0.25,
+                      col.backbone = backbone_colors)
+  pat <- addFeaturesAsSphere(pat, supperloops, alpha = 0.5)
   showPairs(mat, pat, title = paste('cell', i, c('mat', 'pat')),
             background = c("#11111188",
                            "#222222DD",
@@ -124,10 +154,180 @@ widgets <- mapply(function(a, b, i){
 }, hickit.a, hickit.b, names(hickit.a), SIMPLIFY = FALSE)
 
 widgets[[1]]
-widgets[[5]]
+widgets[[2]]
 
 ```
 
+
+## present single cell 3D structure for mouse data
+
+Figure 4 showcases the geomeTriD package, demonstrating how it presents 3D models generated from [HiRES](https://doi.org/10.1126/science.adg3797).
+
+### Load Libraries
+
+```{r}
+library(geomeTriD)
+library(geomeTriD.documentation)
+library(GenomicRanges)
+library(colorRamps)
+library(TxDb.Mmusculus.UCSC.mm10.knownGene)
+library(org.Mm.eg.db)
+library(geometry)
+```
+
+```{r}
+## HiRES
+extdata <- system.file('extdata', 'GSE223917', package = 'geomeTriD.documentation')
+HiRES <- readRDS(file.path(extdata, 'HiRES.radial_glias.G1.chrX.rds'))
+exprs <- readRDS(file.path(extdata, 'expr.radial_glias.G1.chrX.rds'))
+pairs <- readRDS(file.path(extdata, 'sel.imput.pairs.chrX.rds'))
+
+### supperloop
+supperloops <- GRanges(c('chrX:50555744-50635321',
+                      'chrX:75725458-75764699', # 4933407K13RiK, NR_029443
+                      'chrX:103422010-103484957',
+                      'chrX:105040854-105117090')) # 5530601H04RiK, NR_015467 and Pbdc1
+names(supperloops) <- c('Firre', 'Dxz4', 'Xist/Tsix', 'x75')
+supperloops$label <- names(supperloops)
+supperloops$col <- 2:5 ## set colors for each element
+supperloops$type <- 'gene' ## set it as gene
+
+## plot region
+range <- as(seqinfo(TxDb.Mmusculus.UCSC.mm10.knownGene)['chrX'], 'GRanges')
+
+## annotations
+genes <- genes(TxDb.Mmusculus.UCSC.mm10.knownGene)
+genes_symbols <- mget(genes$gene_id, org.Mm.egSYMBOL, ifnotfound = NA)
+genes$symbols <- sapply(genes_symbols, `[`, i=1)
+geneX <- genes[seqnames(genes)=='chrX']
+geneX$label <- geneX$symbols
+geneX <- geneX[geneX$symbols %in% rownames(exprs)]
+
+## get data for female, must have mat and pat info for chromosome X.
+HiRES.mat <- lapply(HiRES, function(.ele) {
+  .ele <- .ele[.ele$parental=='(mat)']
+  .ele$parental <- NULL
+  .ele
+})
+l.mat <- lengths(HiRES.mat)
+HiRES.pat <- lapply(HiRES, function(.ele) {
+  .ele <- .ele[.ele$parental=='(pat)']
+  .ele$parental <- NULL
+  .ele
+})
+l.pat <- lengths(HiRES.pat)
+k <- l.mat>0 & l.pat>0
+HiRES.mat <- HiRES.mat[k]
+HiRES.pat <- HiRES.pat[k]
+# Make all GRanges object in a list same length by filling with NA
+HiRES <- paddingGRangesList(c(HiRES.mat, HiRES.pat))
+HiRES.mat.xyzs <- HiRES$xyzs[seq_along(HiRES.mat)]
+HiRES.pat.xyzs <- HiRES$xyzs[-seq_along(HiRES.mat)]
+## 
+HiRES.mat <- lapply(HiRES.mat.xyzs, function(.ele){
+  gr <- HiRES$gr
+  mcols(gr) <- .ele[, c('x', 'y', 'z')]
+  gr
+})
+HiRES.pat <- lapply(HiRES.pat.xyzs, function(.ele){
+  gr <- HiRES$gr
+  mcols(gr) <- .ele[, c('x', 'y', 'z')]
+  gr
+})
+
+## backbone color
+resolution <- 3
+backbone_colors <- matlab.like2(n=resolution*length(HiRES.mat[[1]]))
+backbone_bws <- backbone_colors
+backbone_bws[1001:(length(backbone_colors)-1000)] <- 'gray'
+
+getV <- function(points){
+  vol <- convhulln(points, options='Fa')$vol
+}
+
+## calculate the Root Mean Square Deviation (RMSD)
+RMSD_mat_pat <- mapply(function(mat, pat){
+  mat <- as.data.frame(mcols(mat))
+  pat <- as.data.frame(mcols(pat))
+  mat <- fill_NA(mat)
+  pat <- fill_NA(pat)
+  pat <- alignCoor(pat, mat)
+  mat.center <- colMeans(mat, na.rm = TRUE)
+  pat.center <- colMeans(pat, na.rm = TRUE)
+  mat <- t(t(mat) - mat.center)
+  pat <- t(t(pat) - pat.center)
+  mean(sqrt(rowSums((mat - pat)^2)), na.rm = TRUE)
+}, HiRES.mat, HiRES.pat)
+XlinkExpr <- data.frame(Xist=exprs['Xist', ], total=colSums(exprs), RMSD=RMSD_mat_pat)
+XlinkExpr <- XlinkExpr[order(XlinkExpr$total), ]
+
+fit <- lm(RMSD ~ total, data = XlinkExpr)
+plot(XlinkExpr$total, XlinkExpr$RMSD,
+     xlab='Total expression level of X-lined gene', 
+     ylab='RMSD between maternal and paternal')
+abline(fit, col = "blue", lwd=2)
+
+widgets <- lapply(c(head(rownames(XlinkExpr), n=2),
+                    tail(rownames(XlinkExpr), n=2)), function(cell_id){
+    exprSig <- geneX
+    exprSig$score <- exprs[geneX$symbols, cell_id]
+    mat_cell <- HiRES.mat[[cell_id]]
+    mcols(mat_cell) <- fill_NA(as.data.frame(mcols(mat_cell)))
+    pat_cell <- HiRES.pat[[cell_id]]
+    mcols(pat_cell) <- fill_NA(as.data.frame(mcols(pat_cell)))
+    ## check the volumn of the chrX, 
+    ## bigger one is Xa
+    ## condensed one is Xi
+    v_mat <- getV(as.matrix(mcols(mat_cell)))
+    v_pat <- getV(as.matrix(mcols(pat_cell)))
+    mat_only_pairs <- pairs$mat[[cell_id]]
+    mat_only_pairs$color <- 'black'
+    mat_only_pairs$lwd <- 4
+    mat_cell <- view3dStructure(mat_cell,
+                                feature.gr=supperloops,
+                                lwd.gene = 4,
+                                renderer = 'none',
+                                region = range,
+                                resolution=resolution,
+                                genomicSigs = if(v_mat>v_pat) {
+                                  list(mat_rna_reads=exprSig, mat_pairs=mat_only_pairs)
+                                } else {list(mat_pairs=mat_only_pairs)},
+                                signalTransformFun = c,
+                                reverseGenomicSigs = FALSE,
+                                show_coor=FALSE,
+                                lwd.backbone = 0.25,
+                                col.backbone = if(v_mat>v_pat) backbone_bws else backbone_colors)
+    pat_only_pairs <- pairs$pat[[cell_id]]
+    pat_only_pairs$color <- 'black'
+    pat_only_pairs$lwd <- 4
+    pat_cell <- view3dStructure(pat_cell,
+                                feature.gr=supperloops,
+                                lwd.gene = 4,
+                                renderer = 'none',
+                                region = range,
+                                resolution=resolution,
+                                genomicSigs = if(v_mat<=v_pat) {
+                                  list(pat_rna_reads=exprSig, pat_pairs=pat_only_pairs)
+                                } else {list(pat_pairs=pat_only_pairs)},
+                                signalTransformFun = c,
+                                reverseGenomicSigs = FALSE,
+                                show_coor=FALSE,
+                                lwd.backbone = 0.25,
+                                col.backbone = if(v_mat>v_pat) backbone_colors else backbone_bws)
+    # widget <-showPairs(mat_cell, pat_cell, title = paste(c('mat', 'pat'), cell_id))
+    # tempfile <- paste0('cell.', cell_id, '.html')
+    # htmlwidgets::saveWidget(widget, file=tempfile, selfcontained = FALSE, libdir = 'js')
+    showPairs(mat_cell, pat_cell,
+              title = paste(c('mat', 'pat'), cell_id),
+              height=NULL)
+})
+## low expression of X-linked genes
+widgets[[1]]
+widgets[[2]]
+## high expression of X-linked genes
+widgets[[3]]
+widgets[[4]]
+```
 
 ## SessionInfo
 

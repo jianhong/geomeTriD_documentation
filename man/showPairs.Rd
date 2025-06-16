@@ -7,7 +7,7 @@
 showPairs(a, b, height = "95vh", ...)
 }
 \arguments{
-\item{a, b}{A list of \link[geomeTriD:threeJsGeometry-class    ]{threeJsGeometry} object.}
+\item{a, b}{A list of \link[geomeTriD:threeJsGeometry-class]{threeJsGeometry} object.}
 
 \item{height}{The height of the widgets.}
 

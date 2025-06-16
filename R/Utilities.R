@@ -121,7 +121,7 @@ importTensorFLAMINGO <- function(filenames, binsize, chr){
 #' @return An object of GRangesList
 #' @importFrom GenomicRanges GRanges GRangesList
 #' @importFrom IRanges IRanges
-#' @importFrom utils read.delim
+#' @importFrom utils read.delim read.table
 #' @export
 #' @examples
 #' # example code
@@ -156,7 +156,7 @@ importSuperRec <- function(filenames, superRecInputFilenames, binsize, chr){
 #' @examples
 #' f3dg <- system.file('extdata', 'GSE162511',
 #'  'GSM4382149_cortex-p001-cb_001.20k.1.clean.3dg.txt.gz',
-#'   package='geomeTriD_documentation')
+#'   package='geomeTriD.documentation')
 #' xyz <- import3dg(f3dg)
 import3dg <- function(filenames, comment.char="#", ...,
                       parental_postfix=c("(pat)", "(mat)")){
@@ -230,13 +230,14 @@ importGInteractionsFromUrl <- function(urls, resolution, range,
 #' Generate annotation features (feature.gr for \link[geomeTriD]{view3dStructure})
 #' from TxDb and Org object.
 #' @param txdb An \link[GenomicFeatures:TxDb-class]{TxDb} object.
-#' @param org An \link[AnnotationDbi:AnnotationDb-objects]{OrgDb} object.
+#' @param org An \link[AnnotationDbi:AnnotationDb-class]{OrgDb} object.
 #' @param range \link[GenomicRanges:GRanges-class]{GRanges} object. The coordinates.
 #' @param geneSymbolColumn,keytype The column names in the OrgDb for key of TxDb
 #' and the gene symnbols.
 #' @param cols The colors for each gene.
 #' @return A \link[GenomicRanges:GRanges-class]{GRanges} object
 #' @export
+#' @importFrom AnnotationDbi select
 #' @importFrom GenomicFeatures genes
 #' @importFrom IRanges subsetByOverlaps
 #' @examples
@@ -271,7 +272,7 @@ getFeatureGR <- function(txdb, org, range,
 #' Show a pair of geometries
 #' @description
 #' Show a pair of geometries side by side.
-#' @param a,b A list of \link[geomeTriD:threeJsGeometry-class	]{threeJsGeometry} object.
+#' @param a,b A list of \link[geomeTriD:threeJsGeometry-class]{threeJsGeometry} object.
 #' @param height The height of the widgets.
 #' @param ... The parameter for \link[geomeTriD:threeJsViewer]{threeJsViewer}.
 #' @return A \link[GenomicRanges:GRanges-class]{GRanges} object
@@ -288,6 +289,44 @@ showPairs <- function(a, b, height = '95vh', ...){
   threeJsViewer(a, b, height=height, ...)
 }
 
+#' Padding GRanges List
+#' @description
+#' Make all GRanges object in a list same length by filling with NA
+#' @param xyzs A list of GRanges.
+#' @return A list with element 'gr' represent the genomic ranges and
+#' 'xyzs' represent the x,y,z positions in a data.frame.
+#' @export
+#' @importFrom GenomicRanges GRangesList
+#' @importFrom IRanges findOverlaps disjoin slidingWindows
+#' @importFrom S4Vectors queryHits subjectHits mcols mcols<-
+#' 
+paddingGRangesList <- function(xyzs){
+  if(!is(xyzs, 'GRangesList')) xyzs <- GRangesList(xyzs)
+  gr <- unlist(xyzs)
+  gr <- sort(disjoin(unique(gr)))
+  width <- table(width(gr))
+  width <- sort(width, decreasing = TRUE)
+  width <- as.integer(names(width)[1])
+  if(any(width(gr)<width)) stop('can not handle unfixed bin size.')
+  gr.m <- gr[width(gr)==width]
+  gr.l <- gr[width(gr)>width]
+  gr.l <- slidingWindows(gr.l, width = width, step = width)
+  gr <- sort(disjoin(c(gr.m, unlist(gr.l))))
+  colnames(mcols(gr)) <- tolower(colnames(mcols(gr)))
+  mcols(gr)$x <- NA
+  mcols(gr)$y <- NA
+  mcols(gr)$z <- NA
+  names(gr) <- NULL
+  xyzs <- lapply(xyzs, function(.ele){
+    colnames(mcols(.ele)) <- tolower(colnames(mcols(.ele)))
+    ol <- findOverlaps(gr, .ele, minoverlap = width)
+    newEle <- gr
+    mcols(newEle[queryHits(ol)]) <- mcols(.ele[subjectHits(ol)])
+    as.data.frame(mcols(newEle))
+  })
+  return(list(gr=gr, xyzs=xyzs))
+}
+
 #' Aggregate xyz values by xyz group
 #' @description
 #' Aggregate the corresponding xyz values of xyz values for each xyz group
@@ -302,27 +341,28 @@ showPairs <- function(a, b, height = '95vh', ...){
 #' @importFrom geomeTriD fill_NA
 #' @export
 #' 
-aggregateXYZs <- function(xyz.list, FUN=mean, na.rm=TRUE, ...){
+aggregateXYZs <- function(xyz.list, FUN=mean, na.rm=FALSE, ...){
   stopifnot(is.list(xyz.list))
+  cn <- c('x', 'y', 'z')
   xyz.list <- lapply(xyz.list, function(xyzs){
     lapply(xyzs, function(.ele){
       if(!(is.matrix(.ele) || is.data.frame(.ele))){
         stop("The elements for each group in xyz.list must be a matrix or data.frame.")
       }
       colnames(.ele) <- tolower(colnames(.ele))
-      if(!all(c('x', 'y', 'z') %in% colnames(.ele))){
-        stop('The elements fro each group in xyz.list must contain colnames "x", "y" and "z".')
+      if(!all(cn %in% colnames(.ele))){
+        stop('The elements for each group in xyz.list must contain colnames "x", "y" and "z".')
       }
       .ele
     })
   })
   if(!na.rm){
-    xyz.list <- lapply(xyz.list, fill_NA)
+    xyz.list <- lapply(xyz.list, function(.ele) lapply(.ele, fill_NA))
   }
   
   cg_xyz <- lapply(xyz.list, function(.ele){
-    xyz <- lapply(c('x', 'y', 'z'), function(coln){
-      x <- apply(do.call(cbind, lapply(.ele, function(.e){
+    xyz <- lapply(cn, function(coln){
+      apply(do.call(cbind, lapply(.ele, function(.e){
         .e[, coln]
       })), 1, FUN, na.rm = na.rm, ...)
     })
@@ -332,4 +372,34 @@ aggregateXYZs <- function(xyz.list, FUN=mean, na.rm=TRUE, ...){
     .ele$z <- xyz[[3]]
     .ele
   })
+}
+
+#' Find the cluster medoid sample
+#' @description
+#' Find the medoid sample of each cluster in a given distance matrix
+#' @param dist A dist object
+#' @param cluster The group information for the elements in the dist.
+#' @param N The number of medoid sample to be returned.
+#' @param na.rm A logical evaluating to TRUE or FALSE indicating whether NA 
+#' values should be stripped before the computation proceeds. 
+#' @return The medoid element labels for each cluster.
+#' @export
+#' @importFrom utils head
+#' @examples
+#' x <- matrix(rnorm(100), nrow = 5)
+#' dist <- dist(x)
+#' group <- c('A', 'A', 'B', 'B', 'B')
+#' getMedoidId(dist, group)
+getMedoidId <- function(dist, cluster, N=1L, na.rm=TRUE){
+  stopifnot(is(dist, 'dist'))
+  stopifnot(is.numeric(N))
+  n <- attr(dist, 'Size')
+  stopifnot(n==length(cluster))
+  dist <- split(as.data.frame(as.matrix(dist)), cluster)
+  idx <- lapply(dist, function(.ele){
+    rs <- rowSums(.ele[, rownames(.ele), drop=FALSE], na.rm = na.rm)
+    rs <- sort(rs, decreasing = FALSE)
+    names(head(rs, n=N))
+  })
+  return(idx)
 }

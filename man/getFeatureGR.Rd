@@ -16,7 +16,7 @@ getFeatureGR(
 \arguments{
 \item{txdb}{An \link[GenomicFeatures:TxDb-class]{TxDb} object.}
 
-\item{org}{An \link[AnnotationDbi:AnnotationDb-objects]{OrgDb} object.}
+\item{org}{An \link[AnnotationDbi:AnnotationDb-class]{OrgDb} object.}
 
 \item{range}{\link[GenomicRanges:GRanges-class]{GRanges} object. The coordinates.}
 

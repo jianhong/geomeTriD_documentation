@@ -29,6 +29,6 @@ Import 3dg file from Hickit output to a GRangesList Object
 \examples{
 f3dg <- system.file('extdata', 'GSE162511',
  'GSM4382149_cortex-p001-cb_001.20k.1.clean.3dg.txt.gz',
-  package='geomeTriD_documentation')
+  package='geomeTriD.documentation')
 xyz <- import3dg(f3dg)
 }

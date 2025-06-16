@@ -4,7 +4,7 @@
 \alias{aggregateXYZs}
 \title{Aggregate xyz values by xyz group}
 \usage{
-aggregateXYZs(xyz.list, FUN = mean, na.rm = TRUE, ...)
+aggregateXYZs(xyz.list, FUN = mean, na.rm = FALSE, ...)
 }
 \arguments{
 \item{xyz.list}{A list of list with xyz values.}
