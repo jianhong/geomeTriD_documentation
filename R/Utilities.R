@@ -166,10 +166,16 @@ import3dg <- function(filenames, comment.char="#", ...,
                                                      comment.char=comment.char,
                                                      ...))
   gr <- lapply(dat, function(.ele){
+    w0 <- .ele$V2[-1] - .ele$V2[-length(.ele$V2)]
+    w0 <- min(w0[w0>0], na.rm = TRUE)
     .ele <- split(.ele, .ele$V1)
     .ele <- lapply(.ele, function(.e){
-      w <- .e$V2[-1] - .e$V2[-length(.e$V2)]
-      w <- c(w, w[length(w)])
+      if(nrow(.e)<2){
+        w <- w0
+      }else{
+        w <- .e$V2[-1] - .e$V2[-length(.e$V2)]
+        w <- c(w, w[length(w)])
+      }
       .e$wid <- w
       .e
     })
@@ -273,7 +279,7 @@ getFeatureGR <- function(txdb, org, range,
 #' @description
 #' Show a pair of geometries side by side.
 #' @param a,b A list of \link[geomeTriD:threeJsGeometry-class]{threeJsGeometry} object.
-#' @param height The height of the widgets.
+#' @param height The height of the widgets, eg '95vh'. 
 #' @param ... The parameter for \link[geomeTriD:threeJsViewer]{threeJsViewer}.
 #' @return A \link[GenomicRanges:GRanges-class]{GRanges} object
 #' @export
@@ -281,7 +287,7 @@ getFeatureGR <- function(txdb, org, range,
 #' @examples
 #' # example code
 #' 
-showPairs <- function(a, b, height = '95vh', ...){
+showPairs <- function(a, b, height = NULL, ...){
   b <- lapply(b, function(.ele) {
     .ele$side = 'right'
     .ele

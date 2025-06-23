@@ -28,7 +28,7 @@ suppressPackageStartupMessages({
   library(org.Mm.eg.db)
   library(geometry)
 })
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, out.width = "900px")
 ```
 
 # Figure 4
@@ -128,7 +128,7 @@ pat <- view3dStructure(hickit.b, renderer = 'none', region = range,
                        col.backbone = backbone_colors)
 mat <- addFeaturesAsSphere(mat, supperloops, alpha = 0.5)
 pat <- addFeaturesAsSphere(pat, supperloops, alpha = 0.5)
-showPairs(mat, pat, title = c('GM12878 cell 3 mat', 'GM12878 cell 3 pat'), height = NULL)
+showPairs(mat, pat, title = c('GM12878 cell 3 mat', 'GM12878 cell 3 pat'))
 ```
 
 ### Plot all cells to show the cell heterogeneity
@@ -149,8 +149,7 @@ widgets <- mapply(function(a, b, i){
             background = c("#11111188",
                            "#222222DD",
                            "#222222DD",
-                           "#11111188"),
-            height = NULL)
+                           "#11111188"))
 }, hickit.a, hickit.b, names(hickit.a), SIMPLIFY = FALSE)
 
 widgets[[1]]
@@ -327,6 +326,107 @@ widgets[[2]]
 ## high expression of X-linked genes
 widgets[[3]]
 widgets[[4]]
+```
+
+Figure 4 showcases the geomeTriD package, demonstrating how it presents 3D models generated from [Tri-omic](https://doi.org/10.1038/s41592-025-02658-7).
+
+### Load Libraries
+
+```{r}
+library(geomeTriD)
+library(geomeTriD.documentation)
+library(GenomicRanges)
+library(colorRamps)
+library(geometry)
+```
+
+```{r}
+### supperloop
+supperloops <- GRanges(c('chrX:50555744-50635321',
+                         'chrX:75725458-75764699', # 4933407K13RiK, NR_029443
+                         'chrX:103422010-103484957',
+                         'chrX:105040854-105117090')) # 5530601H04RiK, NR_015467 and Pbdc1
+names(supperloops) <- c('Firre', 'Dxz4', 'Xist/Tsix', 'x75')
+supperloops$label <- names(supperloops)
+supperloops$col <- 2:5 ## set colors for each element
+supperloops$type <- 'gene' ## set it as gene
+
+range <- GRanges('chrX:1-171031299')
+
+stage <- c('G1', 'S', 'G2M')
+
+extdata <- system.file('extdata', 'ChAIR', package = 'geomeTriD.documentation')
+ChAIR_PET_m <- import3dg(file.path(extdata, 'PET', paste0('patski.allele.', stage, '_2_m.pairs.chrX.3dg.gz')))
+ChAIR_PET_p <- import3dg(file.path(extdata, 'PET', paste0('patski.allele.', stage, '_2_p.pairs.chrX.3dg.gz')))
+
+ChAIR_PET_m <- lapply(ChAIR_PET_m, function(.ele) {
+  seqlevelsStyle(.ele) <- 'UCSC'
+  .ele$parental <- NULL
+  subsetByOverlaps(.ele, range)
+  })
+ChAIR_PET_p <- lapply(ChAIR_PET_p, function(.ele) {
+  seqlevelsStyle(.ele) <- 'UCSC'
+  .ele$parental <- NULL
+  subsetByOverlaps(.ele, range)
+})
+
+
+# download the files and import the signals
+M <- lapply(stage, function(cc){
+  importGenomicSigs(c(ATAC=file.path(extdata, 'ATAC', paste0('patski.allele.', cc, '_2.M.bw')),
+                      RNA=file.path(extdata, 'RNA', paste0('patski.allele.', cc, '_2.M.bw'))),
+                      range = range,
+                    cols = c('orange', 'red'),
+                    format = 'BigWig')
+  })
+P <- lapply(stage, function(cc){
+  importGenomicSigs(c(ATAC=file.path(extdata, 'ATAC', paste0('patski.allele.', cc, '_2.M.bw')),
+                      RNA=file.path(extdata, 'RNA', paste0('patski.allele.', cc, '_2.M.bw'))),
+                      range = range,
+                    cols = c('orange', 'red'),
+                    format = 'BigWig')
+})
+
+resolution <- 3
+backbone_colors <- rev(rainbow(n=resolution*length(ChAIR_PET_m[[1]])))
+
+M_cells <- mapply(ChAIR_PET_m, M, FUN=function(model, sig){
+  cell <- view3dStructure(model[seqnames(model)=='chrX'],
+                  feature.gr = supperloops,
+                  genomicSigs = sig,
+                  signalTransformFun = log1p,
+                  lwd.maxGenomicSigs = 8,
+                  reverseGenomicSigs = FALSE,
+                  renderer = 'none',
+                  resolution = resolution,
+                  col.backbone = backbone_colors,
+                  region = range,
+                  show_coor = FALSE)
+  backbone <- extractBackbonePositions(cell)
+  sl <- createTADGeometries(supperloops, backbone, type = 'sphere', alpha = 0.8)
+  c(cell, sl)
+}, SIMPLIFY = FALSE)
+P_cells <- mapply(ChAIR_PET_p, P, FUN=function(model, sig){
+  cell <- view3dStructure(model[seqnames(model)=='chrX'],
+                  feature.gr = supperloops,
+                  genomicSigs = sig,
+                  signalTransformFun = log1p,
+                  lwd.maxGenomicSigs = 8,
+                  reverseGenomicSigs = FALSE,
+                  renderer = 'none',
+                  resolution = resolution,
+                  col.backbone = backbone_colors,
+                  region = range,
+                  show_coor = FALSE)
+  backbone <- extractBackbonePositions(cell)
+  sl <- createTADGeometries(supperloops, backbone, type = 'sphere', alpha = 0.8)
+  c(cell, sl)
+}, SIMPLIFY = FALSE)
+
+showPairs(M_cells[[1]], P_cells[[1]], title=c('mat G1', 'pat G1')) #G1
+showPairs(M_cells[[2]], P_cells[[2]], title=c('mat S', 'pat S')) #S
+showPairs(M_cells[[3]], P_cells[[3]], title=c('mat G2M', 'pat G2M')) #G2M
+
 ```
 
 ## SessionInfo

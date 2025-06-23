@@ -4,12 +4,12 @@
 \alias{showPairs}
 \title{Show a pair of geometries}
 \usage{
-showPairs(a, b, height = "95vh", ...)
+showPairs(a, b, height = NULL, ...)
 }
 \arguments{
 \item{a, b}{A list of \link[geomeTriD:threeJsGeometry-class]{threeJsGeometry} object.}
 
-\item{height}{The height of the widgets.}
+\item{height}{The height of the widgets, eg '95vh'.}
 
 \item{...}{The parameter for \link[geomeTriD:threeJsViewer]{threeJsViewer}.}
 }

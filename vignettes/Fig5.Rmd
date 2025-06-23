@@ -20,12 +20,14 @@ suppressPackageStartupMessages({
   library(geomeTriD.documentation)
   library(GenomicRanges)
   library(TxDb.Hsapiens.UCSC.hg38.knownGene)
+  library(BSgenome.Hsapiens.UCSC.hg38)
   library(org.Hs.eg.db)
   library(clusterCrit)
   library(grid)
   library(colorRamps)
+  library(dendextend)
 })
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, out.width = "900px")
 ```
 
 # Figure 5
@@ -40,6 +42,7 @@ library(geomeTriD)
 library(geomeTriD.documentation)
 library(GenomicRanges)
 library(TxDb.Hsapiens.UCSC.hg38.knownGene)
+library(BSgenome.Hsapiens.UCSC.hg38)
 library(org.Hs.eg.db)
 library(clusterCrit)
 library(colorRamps)
@@ -139,11 +142,9 @@ grouped_cell <- lapply(cg_xyz, function(cell){
 
 title <- c("A1,B1 overlap", "A1,B1 do not overlap")
 showPairs(grouped_cell[[(abc_ol-1)*2+1]], grouped_cell[[(abc_nol-1)*2+1]],
-          title = title,
-          height = NULL)
+          title = title)
 showPairs(grouped_cell[[(abc_ol-1)*2+2]], grouped_cell[[(abc_nol-1)*2+2]],
-          title = title,
-          height = NULL)
+          title = title)
 ```
 
 
@@ -208,17 +209,124 @@ for(i in as.numeric(cc1[1:2, ])){
   })
 }
 
-showPairs(cells_18_20[[cc1[1, '9']]], cells_18_20[[cc1[2, '9']]],
-          height = NULL)# cell 1
+showPairs(cells_18_20[[cc1[1, '9']]], cells_18_20[[cc1[2, '9']]])# cell 1
+plotdistance <- function(xyz){
+  pc <- pointCluster(fill_NA(xyz))
+  spatialDistanceHeatmap(xyz,
+                         col=colorRampPalette(c("#871518", "#FF0000",
+                                                "#FFFFFF", "#00008B",
+                                                '#20205F'))(100))
+  pid <- unique(pc$cluster)
+  for(id in pid){
+    if(id!=0){
+      borders <- (range(which(pc$cluster==id))+c(-.5, .5))/length(pc$cluster)
+      rect(xleft = borders[1], ybottom = (0.985-borders[2])*10/11.5,
+           xright = borders[2], ytop = (0.985-borders[1])*10/11.5,
+           col = NA, border = 'green', lwd = 2)
+    }
+  }
+}
+plotdists <- function(xyz1, xyz2){
+  plotdistance(xyz1)
+  plotdistance(xyz2)
+}
+plotdists(imr90_18_20[[cc1[1, '9']]], imr90_18_20[[cc1[2, '9']]])
 
-showPairs(cells_18_20[[cc1[1, '56']]], cells_18_20[[cc1[2, '56']]],
-          height = NULL)# cell 2
+showPairs(cells_18_20[[cc1[1, '56']]], cells_18_20[[cc1[2, '56']]])# cell 2
 
-showPairs(cells_18_20[[cc1[1, '8']]], cells_18_20[[cc1[2, '8']]],
-          height = NULL) # cell 3
+plotdists(imr90_18_20[[cc1[1, '56']]], imr90_18_20[[cc1[2, '56']]])
 
-showPairs(cells_18_20[[cc1[1, '26']]], cells_18_20[[cc1[2, '26']]],
-          height = NULL)
+showPairs(cells_18_20[[cc1[1, '8']]], cells_18_20[[cc1[2, '8']]]) # cell 3
+
+plotdists(imr90_18_20[[cc1[1, '8']]], imr90_18_20[[cc1[2, '8']]])
+
+showPairs(cells_18_20[[cc1[1, '26']]], cells_18_20[[cc1[2, '26']]])
+
+plotdists(imr90_18_20[[cc1[1, '26']]], imr90_18_20[[cc1[2, '26']]])
+```
+```{r}
+# chr21 <- read.delim('.../MERFISH/chromosome21.tsv')
+# chr21 <- with(chr21, GRanges(Genomic.coordinate,
+#                              x=X.nm., y=Y.nm., z=Z.nm.,
+#                              cell=Chromosome.copy.number))
+# chr21 <- split(chr21, chr21$cell)
+# chr21 <- lapply(chr21, function(.ele){
+#   .ele$cell <- NULL
+#   .ele
+# })
+# cd <- cellDistance(xyzs=lapply(chr21[1:1000], function(.ele) fill_NA(as.data.frame(mcols(.ele)))), distance_method = 'NID', k = 'auto')
+extdata <- system.file('extdata', 'MERFISH', package = 'geomeTriD.documentation')
+chr21 <- readRDS(file.path(extdata, 'chromosome21.1K.cell.rds'))
+cd <- readRDS(file.path(extdata, 'celldist.NID.rds'))
+cc <- cellClusters(cd)
+k <- autoK(cd, cc, max_k = 10)
+cell_groups <- cutree(cc, k=k)
+centers_cell <- getMedoidId(cd, cell_groups)
+## plot the select cells
+library(dendextend)
+dend <- as.dendrogram(cc)
+labels(dend) <- ifelse(labels(dend) %in% unlist(centers_cell), labels(dend), '')
+plot(dend)
+
+## plot the spatial distance matrix
+plotSDM <- function(gr, cutoff=1500, components=c('compartment'), ...){
+  sdm <- spatialDistanceMatrix(gr)
+  sdm[sdm>cutoff] <- cutoff ## this is used to remove the outliers
+  spatialDistanceHeatmap(sdm,
+                         components = components,
+                         col=colorRampPalette(c("#871518", "#FF0000",
+                                                "#FFFFFF", "#00008B",
+                                                '#20205F'))(100),
+                         Gaussian_blur = TRUE,
+                         ...)
+}
+plotSDM(chr21[[centers_cell[[1]]]])
+plotSDM(chr21[[centers_cell[[2]]]])
+plotSDM(chr21[[centers_cell[[3]]]])
+plotSDM(chr21[[centers_cell[[4]]]])
+plotSDM(chr21[[centers_cell[[5]]]])
+plotSDM(chr21[[centers_cell[[6]]]])
+
+cd1 <- cellDistance(lapply(chr21[unlist(centers_cell)], function(.ele) fill_NA(as.data.frame(mcols(.ele)))), distance_method = 'NID', k='auto')
+cc1 <- cellClusters(cd1)
+plot(cc1)
+
+resolution <- 10
+backbone_colors <- rev(matlab.like2(n=resolution*length(chr21[[1]])))
+
+# range_10_46 <- GRanges("chr21:10400001-46700001")
+# 
+# feature.gr_10_46 <- getFeatureGR(txdb = TxDb.Hsapiens.UCSC.hg38.knownGene,
+#                                  org = org.Hs.eg.db,
+#                                  range = range_10_46)
+
+MERFISH_cells <- lapply(unlist(centers_cell), function(i){
+  cell <- chr21[[i]]
+  sdm <- spatialDistanceMatrix(cell)
+  sdm <- gaussianBlur(sdm)
+  tads <- hierarchicalClusteringTAD(sdm, bin_size=width(cell)[1])
+  tads <- apply(tads, 1, function(.ele){
+    range(cell[seq(.ele[1], .ele[2])])
+  })
+  tads <- unlist(GRangesList(tads))
+  compartments <- compartment(cell, genome = BSgenome.Hsapiens.UCSC.hg38)
+  cell <- cell[apply(mcols(cell), 1, function(.ele) !any(is.na(.ele)))]
+  cell <- view3dStructure(cell, feature.gr = compartments,
+                          renderer = 'none',
+                          show_coor=FALSE, lwd.backbone = 2,
+                          col.backbone=backbone_colors,
+                          resolution=resolution,
+                          length.arrow = unit(0.1, "native"))
+  backbone <- extractBackbonePositions(cell)
+  tads <- createTADGeometries(tads, backbone, type = 'segment', lwd=4, alpha = 0.5)
+  c(cell, tads)
+})
+
+
+showPairs(MERFISH_cells[[1]], MERFISH_cells[[2]])
+showPairs(MERFISH_cells[[4]], MERFISH_cells[[6]])
+showPairs(MERFISH_cells[[3]], MERFISH_cells[[5]])
+
 ```
 
 
