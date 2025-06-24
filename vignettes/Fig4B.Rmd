@@ -19,8 +19,6 @@ suppressPackageStartupMessages({
   library(geomeTriD)
   library(geomeTriD.documentation)
   library(GenomicRanges)
-  library(TxDb.Hsapiens.UCSC.hg38.knownGene)
-  library(org.Hs.eg.db)
   library(clusterCrit)
   library(grid)
   library(colorRamps)
@@ -291,9 +289,9 @@ P_cells <- mapply(ChAIR_PET_p, P, FUN=function(model, sig){
 }, SIMPLIFY = FALSE)
 
 ## show the maternal and paternal structures side by side
-showPairs(M_cells[[1]], P_cells[[1]], title=c('mat G1', 'pat G1')) #G1
+#showPairs(M_cells[[1]], P_cells[[1]], title=c('mat G1', 'pat G1')) #G1
 showPairs(M_cells[[2]], P_cells[[2]], title=c('mat S', 'pat S')) #S
-showPairs(M_cells[[3]], P_cells[[3]], title=c('mat G2M', 'pat G2M')) #G2M
+#showPairs(M_cells[[3]], P_cells[[3]], title=c('mat G2M', 'pat G2M')) #G2M
 
 ```
 
