@@ -20,7 +20,7 @@ suppressPackageStartupMessages({
   library(geomeTriD.documentation)
   library(GenomicRanges)
   library(TxDb.Hsapiens.UCSC.hg38.knownGene)
-  library(BSgenome.Hsapiens.UCSC.hg38)
+  #library(BSgenome.Hsapiens.UCSC.hg38)
   library(org.Hs.eg.db)
   library(clusterCrit)
   library(grid)
@@ -32,8 +32,7 @@ knitr::opts_chunk$set(echo = TRUE, out.width = "900px")
 
 # Figure 5
 
-The Figure 5 is the showcase for `geomeTriD` package to present multiple genomic 
-signals along with 3D models for topologically associating domain (TADs). 
+Figure 5 showcases the capabilities of the `geomeTriD` package in visualizing data from STORM (Stochastic Optical Reconstruction Microscopy) and MERFISH (Multiplexed Error-Robust Fluorescence In Situ Hybridization). Since these methods provide real 3D spatial coordinates, the resulting point clouds can be clustered based on spatial distance. The spatial distance matrix can also be used to identify topologically associating domains (TADs) and compartments. In the context of single-cell 3D structures, this figure further demonstrates how geomeTriD can be used to cluster individual cells through analysis of their spatial distance matrices by multiple methods.
 
 ## Load Libraries
 
@@ -42,14 +41,16 @@ library(geomeTriD)
 library(geomeTriD.documentation)
 library(GenomicRanges)
 library(TxDb.Hsapiens.UCSC.hg38.knownGene)
-library(BSgenome.Hsapiens.UCSC.hg38)
+#library(BSgenome.Hsapiens.UCSC.hg38)
 library(org.Hs.eg.db)
 library(clusterCrit)
 library(colorRamps)
+library(dendextend)
 ```
 
-## Load data and annotations
-The data were from [diffraction-limited experiments for IMR90 cells](https://doi.org/10.1126/science.aau1783).
+## Visualize single cell 3D structure for STROM data
+
+The data are derived from [diffraction-limited experiments for IMR90 cells](https://doi.org/10.1126/science.aau1783). To demonstrate the capability of geomeTriD in visualizing multiple genomic signals along 3D structures, we incorporate bulk CTCF, SMC3, and RAD21 signal tracks. Cells are clustered based on their spatial similarity, using the Euclidean distance of each cell's 3D structure to the centroid. Representative 3D structures from each cluster are then visualized.
 
 ```{r}
 ## xyz is from diffraction-limited experiments but not the actual xyz cords of STORM experiments.
@@ -81,6 +82,7 @@ imr90_genomicSigs <- importSignalFromUrl(imr90_urls, range = range,
                                            'rad21'=c('#110000', 'red')),
                                          format = 'BED')
 
+## select the interesting genomic regions for clustering cells
 xyzs <- lapply(xyz.s, function(.ele) {
   .ele <- .ele[c(18, 27, 32), -1]
   if(any(is.na(.ele))) return(NULL)
@@ -88,6 +90,7 @@ xyzs <- lapply(xyz.s, function(.ele) {
 })
 keep <- lengths(xyzs)>0
 
+## cluster the cells by distance of SDC
 cd <- cellDistance(xyzs[keep], distance_method = 'DSDC')
 cc <- cellClusters(cd)
 cell_groups <- cutree(cc, k=3)
@@ -120,8 +123,10 @@ cg_xyz <- lapply(cg_xyz, function(.ele){
                      x=X, y=Y, z=Z))
 })
 
-
-ABC <- GRanges('chr21', IRanges(st(c(18, 27, 32)-1, offset=start(range)), width = 30000),
+## create a GRanges object for A1, B1, C1 
+ABC <- GRanges('chr21', IRanges(st(c(18, 27, 32)-1,
+                                   offset=start(range)),
+                                width = 30000),
                col=c('red', 'cyan', 'yellow'))
 ABC$label <- c('A1', 'B1', 'C1')
 ABC$type <- 'tad'
@@ -148,25 +153,24 @@ showPairs(grouped_cell[[(abc_ol-1)*2+2]], grouped_cell[[(abc_nol-1)*2+2]],
 ```
 
 
-## present single cell 3D structure with TADs based on the point cluster
+## Visualize single cell 3D structure with point clouds
 
-The data were from [diffraction-limited experiments for IMR90 cells](https://doi.org/10.1126/science.aau1783).
+The data originate from [diffraction-limited experiments for IMR90 cells](https://doi.org/10.1126/science.aau1783), specifically targeting the 18–20 Mb region of chromosome 21. Here, we present single-cell 3D structures with spatial point clusters identified using DBSCAN. In addition, we display the corresponding spatial distance matrices as heatmaps, annotated with predicted TADs, compartments, and point cloud boundaries, to highlight the structural organization of this genomic region.  
 
 ```{r}
-# Fig. S7
+## the raw data are same as the Fig. S7 from the original paper
 xyz <- read.csv('https://github.com/BogdanBintu/ChromatinImaging/raw/refs/heads/master/Data/IMR90_chr21-18-20Mb.csv', skip = 1)
 xyz.s <- split(xyz[, -1], xyz$Chromosome.index)
 
+## get cell distance matrix by Normalized information distance (NID) for the point clouds using DBSCAN 
 #cd <- cellDistance(xyzs=lapply(xyz.s, function(.ele) fill_NA(.ele[, -1])), distance_method = 'NID',  eps = 'auto', rescale = FALSE)
+## we load pre-calculated data
 cd <- readRDS(system.file('extdata', 'ChromatinImaging', 'FigS7.cellDistance.nid.rds', package = 'geomeTriD.documentation'))
 cd1 <- as.matrix(cd)
 cc1 <- apply(cd1[c(8, 9, 15, 26, 56), ], ## select some typical cells
              1, function(.ele){
   order(.ele)
 })
-cc <- cellClusters(cd)
-#plot(cc, labels=FALSE)
-cell_groups <- cutree(cc, h=0.5)
 
 range_18_20 <- GRanges("chr21:18627683-20577682")
 # feature.gr_18_20 <- getFeatureGR(txdb = TxDb.Hsapiens.UCSC.hg38.knownGene,
@@ -181,6 +185,7 @@ st <- function(i, offset=28000001, interval=30000){
   return(interval*i+offset)
 }
 
+## create the GRanges object with x, y, z coordinates
 imr90_18_20 <- lapply(xyz.s, function(.ele){
   with(.ele, GRanges('chr21', IRanges(st(.ele$Segment.index-1,
                                          offset=start(range_18_20)),
@@ -188,8 +193,9 @@ imr90_18_20 <- lapply(xyz.s, function(.ele){
                      x=X, y=Y, z=Z))
 })
 
+## create the threejsGeometry objects
 cells_18_20 <- list()
-for(i in as.numeric(cc1[1:2, ])){
+for(i in as.numeric(cc1[1:2, ])){ ## find the nearest neighbor of selected cells
   try({
     cell <- imr90_18_20[[i]]
     cell <- cell[apply(mcols(cell), 1, function(.ele) !any(is.na(.ele)))]
@@ -200,7 +206,7 @@ for(i in as.numeric(cc1[1:2, ])){
                             resolution=resolution,
                             length.arrow = unit(0.1, "native"),
                             cluster3Dpoints = TRUE)
-    ## reset the color for the point clusters
+    ## reset the color for the point clouds
     pcn <- names(cell)[grepl('pointCluster', names(cell))]
     for(j in seq_along(pcn)){
       cell[[pcn[j]]]$colors <- j+1
@@ -208,14 +214,15 @@ for(i in as.numeric(cc1[1:2, ])){
     cells_18_20[[i]] <- cell
   })
 }
-
-showPairs(cells_18_20[[cc1[1, '9']]], cells_18_20[[cc1[2, '9']]])# cell 1
+## help function to show the spatical distance matrix, 
+## the TADs, compartments and the point clusters boundaries.
 plotdistance <- function(xyz){
   pc <- pointCluster(fill_NA(xyz))
   spatialDistanceHeatmap(xyz,
                          col=colorRampPalette(c("#871518", "#FF0000",
                                                 "#FFFFFF", "#00008B",
                                                 '#20205F'))(100))
+  ## use green color line to present the point cluster boundaries.
   pid <- unique(pc$cluster)
   for(id in pid){
     if(id!=0){
@@ -226,24 +233,28 @@ plotdistance <- function(xyz){
     }
   }
 }
-plotdists <- function(xyz1, xyz2){
-  plotdistance(xyz1)
-  plotdistance(xyz2)
-}
-plotdists(imr90_18_20[[cc1[1, '9']]], imr90_18_20[[cc1[2, '9']]])
+
+showPairs(cells_18_20[[cc1[1, '9']]], cells_18_20[[cc1[2, '9']]])# cell 1
+
+plotdistance(imr90_18_20[[cc1[1, '9']]])
 
 showPairs(cells_18_20[[cc1[1, '56']]], cells_18_20[[cc1[2, '56']]])# cell 2
 
-plotdists(imr90_18_20[[cc1[1, '56']]], imr90_18_20[[cc1[2, '56']]])
+plotdistance(imr90_18_20[[cc1[1, '56']]])
 
 showPairs(cells_18_20[[cc1[1, '8']]], cells_18_20[[cc1[2, '8']]]) # cell 3
 
-plotdists(imr90_18_20[[cc1[1, '8']]], imr90_18_20[[cc1[2, '8']]])
+plotdistance(imr90_18_20[[cc1[1, '8']]])
 
 showPairs(cells_18_20[[cc1[1, '26']]], cells_18_20[[cc1[2, '26']]])
 
-plotdists(imr90_18_20[[cc1[1, '26']]], imr90_18_20[[cc1[2, '26']]])
+plotdistance(imr90_18_20[[cc1[1, '26']]])
 ```
+
+## Visualize single cell 3D structure for MERFISH data
+
+The data were obtained from [a MERFISH-based 3D chromatin study of chromosome 21 in IMR90 cells](https://doi.org/10.1016/j.cell.2020.07.032). We first cluster the cells based on their spatial features, then select representative cells from each cluster. For these cells, we visualize the spatial distance matrices as heatmaps and display their corresponding 3D genome structures annotated with predicted TADs and compartments.
+
 ```{r}
 # chr21 <- read.delim('.../MERFISH/chromosome21.tsv')
 # chr21 <- with(chr21, GRanges(Genomic.coordinate,
@@ -263,10 +274,14 @@ k <- autoK(cd, cc, max_k = 10)
 cell_groups <- cutree(cc, k=k)
 centers_cell <- getMedoidId(cd, cell_groups)
 ## plot the select cells
-library(dendextend)
 dend <- as.dendrogram(cc)
 labels(dend) <- ifelse(labels(dend) %in% unlist(centers_cell), labels(dend), '')
 plot(dend)
+
+## Cluster the selected cells into pairs for comparative visualization.
+cd1 <- cellDistance(lapply(chr21[unlist(centers_cell)], function(.ele) fill_NA(as.data.frame(mcols(.ele)))), distance_method = 'NID', k='auto')
+cc1 <- cellClusters(cd1)
+plot(cc1)
 
 ## plot the spatial distance matrix
 plotSDM <- function(gr, cutoff=1500, components=c('compartment'), ...){
@@ -283,33 +298,30 @@ plotSDM <- function(gr, cutoff=1500, components=c('compartment'), ...){
 plotSDM(chr21[[centers_cell[[1]]]])
 plotSDM(chr21[[centers_cell[[2]]]])
 plotSDM(chr21[[centers_cell[[3]]]])
-plotSDM(chr21[[centers_cell[[4]]]])
 plotSDM(chr21[[centers_cell[[5]]]])
+plotSDM(chr21[[centers_cell[[4]]]])
 plotSDM(chr21[[centers_cell[[6]]]])
 
-cd1 <- cellDistance(lapply(chr21[unlist(centers_cell)], function(.ele) fill_NA(as.data.frame(mcols(.ele)))), distance_method = 'NID', k='auto')
-cc1 <- cellClusters(cd1)
-plot(cc1)
 
-resolution <- 10
+
+resolution <- 3
 backbone_colors <- rev(matlab.like2(n=resolution*length(chr21[[1]])))
-
-# range_10_46 <- GRanges("chr21:10400001-46700001")
-# 
-# feature.gr_10_46 <- getFeatureGR(txdb = TxDb.Hsapiens.UCSC.hg38.knownGene,
-#                                  org = org.Hs.eg.db,
-#                                  range = range_10_46)
 
 MERFISH_cells <- lapply(unlist(centers_cell), function(i){
   cell <- chr21[[i]]
   sdm <- spatialDistanceMatrix(cell)
-  sdm <- gaussianBlur(sdm)
+  sdm <- gaussianBlur(sdm) ## do Gaussian blur to reduce the noise
+  ## get the TADs by hierarchical clustering method
   tads <- hierarchicalClusteringTAD(sdm, bin_size=width(cell)[1])
   tads <- apply(tads, 1, function(.ele){
     range(cell[seq(.ele[1], .ele[2])])
   })
   tads <- unlist(GRangesList(tads))
-  compartments <- compartment(cell, genome = BSgenome.Hsapiens.UCSC.hg38)
+  ## get the compartments
+  ## The genome is used to adjust A/B by GC contents.
+  ## It is highly suggested for real data.
+  compartments <- compartment(cell)#, genome = BSgenome.Hsapiens.UCSC.hg38)
+  ## create the threejsGeometry object
   cell <- cell[apply(mcols(cell), 1, function(.ele) !any(is.na(.ele)))]
   cell <- view3dStructure(cell, feature.gr = compartments,
                           renderer = 'none',
@@ -317,6 +329,7 @@ MERFISH_cells <- lapply(unlist(centers_cell), function(i){
                           col.backbone=backbone_colors,
                           resolution=resolution,
                           length.arrow = unit(0.1, "native"))
+  ## add TADs as segments
   backbone <- extractBackbonePositions(cell)
   tads <- createTADGeometries(tads, backbone, type = 'segment', lwd=4, alpha = 0.5)
   c(cell, tads)

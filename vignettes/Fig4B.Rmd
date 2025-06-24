@@ -1,8 +1,8 @@
 ---
-title: "Figure 4 Vignette"
+title: "Figure 4B Vignette"
 author: "Jianhong Ou"
 vignette: >
-  %\VignetteIndexEntry{Figure 4 Vignette}
+  %\VignetteIndexEntry{Figure 4B Vignette}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 output:
@@ -31,138 +31,11 @@ suppressPackageStartupMessages({
 knitr::opts_chunk$set(echo = TRUE, out.width = "900px")
 ```
 
-# Figure 4
+# Figure 4B
 
-Figure 4 showcases the geomeTriD package, demonstrating how it presents 3D models generated from [Dip-C](https://doi.org/10.1126/science.aat5641).
+Figure 4B showcases the geomeTriD package, demonstrating how it presents 3D models along with multiple genomic signals mapped onto single-cell 3D structures.
 
 ## Load Libraries
-
-```{r loadLibrary}
-library(geomeTriD)
-library(geomeTriD.documentation)
-library(GenomicRanges)
-library(TxDb.Hsapiens.UCSC.hg38.knownGene)
-library(org.Hs.eg.db)
-library(clusterCrit)
-library(colorRamps)
-```
-
-## present single cell 3D structure for human data
-
-### Load and plot data
-This data were downloaded from GEO with accession [GSE117874](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE117874).
-
-```{r}
-## set the data folder, all data are available in the extdata folder of this package
-extdata <- system.file('extdata', 'GSE117874', package='geomeTriD.documentation')
-hickit_3dg <- dir(extdata, '3dg', full.names = TRUE)
-hickit <- import3dg(hickit_3dg, parental_postfix=c('a', 'b'))[[1]]
-## split it into maternal and paternal 3D structures.
-hickit.a <- hickit[hickit$parental=='a'] ## mat
-hickit.b <- hickit[hickit$parental=='b'] ## pat
-## delete the parental information
-hickit.a$parental <- hickit.b$parental <- NULL
-## set data range
-range <- GRanges('X:1-155270560')
-## prepare the coordinates for the four superloops. 
-supperloops <- GRanges(c('X:56800000-56850000',
-                      'X:75350000-75400000',
-                      'X:115000000-115050000',
-                      'X:130850000-130900000'))
-names(supperloops) <- c('ICCE', 'x75', 'DXZ4', 'FIRRE')
-supperloops$label <- names(supperloops)
-supperloops$col <- 2:5 ## set colors for each element
-supperloops$type <- 'gene' ## set it as gene
-## subset the data by given range
-hickit.a <- subsetByOverlaps(hickit.a, range)
-hickit.b <- subsetByOverlaps(hickit.b, range)
-hickit.a <- alignCoor(hickit.a, hickit.b)
-## prepare the backbone colors
-resolution <- 3
-backbone_colors <- matlab.like2(n=resolution*length(hickit.a))
-## add the superloops as segments
-c1 <- view3dStructure(hickit.a,
-                      feature.gr=supperloops,
-                      renderer = 'none',
-                      region = range,
-                      resolution=resolution,
-                      show_coor=FALSE,
-                      lwd.backbone = 0.25,
-                      col.backbone = backbone_colors,
-                      lwd.gene=6)
-c2 <- view3dStructure(hickit.b,
-                      feature.gr=supperloops,
-                      renderer = 'none',
-                      region = range,
-                      resolution=resolution,
-                      show_coor=FALSE,
-                      lwd.backbone = 0.25,
-                      col.backbone = backbone_colors,
-                      lwd.gene=6)
-c2 <- lapply(c2, function(.ele) { ## put pat to right pannel
-  .ele$side = 'right'
-  .ele
-})
-## view the data
-threeJsViewer(c1, c2, title = c('GM12878 cell 3 mat', 'GM12878 cell 3 pat'))
-#widget <-threeJsViewer(c1, c2, title = c('mat', 'pat'))
-#tempfile <- 'Fig4.html'
-#htmlwidgets::saveWidget(widget, file=tempfile)
-#utils::browseURL(tempfile)
-```
-```{r}
-## view the superloops as spheres
-addFeaturesAsSphere <- function(obj, features, ...){
-  backbone <- extractBackbonePositions(obj)
-  spheres <- createTADGeometries(features, backbone, ...)
-  c(obj, spheres)
-}
-mat <- view3dStructure(hickit.a, renderer = 'none', region = range,
-                       resolution=resolution, show_coor=FALSE,
-                       lwd.backbone = 0.25,
-                       col.backbone = backbone_colors)
-mat <- addFeaturesAsSphere(mat, supperloops, alpha = 0.5)
-pat <- view3dStructure(hickit.b, renderer = 'none', region = range,
-                       resolution=resolution, show_coor=FALSE,
-                       lwd.backbone = 0.25,
-                       col.backbone = backbone_colors)
-mat <- addFeaturesAsSphere(mat, supperloops, alpha = 0.5)
-pat <- addFeaturesAsSphere(pat, supperloops, alpha = 0.5)
-showPairs(mat, pat, title = c('GM12878 cell 3 mat', 'GM12878 cell 3 pat'))
-```
-
-### Plot all cells to show the cell heterogeneity
-```{r}
-## load the processed data.
-hickit.a <- readRDS(file.path(extdata, 'hickit.a.rds'))
-hickit.b <- readRDS(file.path(extdata, 'hickit.b.rds'))
-widgets <- mapply(function(a, b, i){
-  mat <- view3dStructure(a, renderer = 'none', region = range,
-                         resolution=resolution, show_coor=FALSE, lwd.backbone = 0.25,
-                      col.backbone = backbone_colors)
-  mat <- addFeaturesAsSphere(mat, supperloops, alpha = 0.5)
-  pat <- view3dStructure(b, renderer = 'none', region = range,
-                         resolution=resolution, show_coor=FALSE, lwd.backbone = 0.25,
-                      col.backbone = backbone_colors)
-  pat <- addFeaturesAsSphere(pat, supperloops, alpha = 0.5)
-  showPairs(mat, pat, title = paste('cell', i, c('mat', 'pat')),
-            background = c("#11111188",
-                           "#222222DD",
-                           "#222222DD",
-                           "#11111188"))
-}, hickit.a, hickit.b, names(hickit.a), SIMPLIFY = FALSE)
-
-widgets[[1]]
-widgets[[2]]
-
-```
-
-
-## present single cell 3D structure for mouse data
-
-Figure 4 showcases the geomeTriD package, demonstrating how it presents 3D models generated from [HiRES](https://doi.org/10.1126/science.adg3797).
-
-### Load Libraries
 
 ```{r}
 library(geomeTriD)
@@ -174,12 +47,16 @@ library(org.Mm.eg.db)
 library(geometry)
 ```
 
+## Present single cell 3D structure for HiRES data
+
+This dataset was generated using [HiRES](https://doi.org/10.1126/science.adg3797), an assay that stands for "Hi-C and RNA-seq employed simultaneously." HiRES enables the simultaneous profiling of single-cell Hi-C and RNA-seq data. The resulting Hi-C data can be used to predict 3D genome structures using `Dip-C`, and the corresponding RNA-seq data can be visualized along these structures using the `geomeTriD` package.
+
 ```{r}
-## HiRES
+## load data for HiRES
 extdata <- system.file('extdata', 'GSE223917', package = 'geomeTriD.documentation')
-HiRES <- readRDS(file.path(extdata, 'HiRES.radial_glias.G1.chrX.rds'))
-exprs <- readRDS(file.path(extdata, 'expr.radial_glias.G1.chrX.rds'))
-pairs <- readRDS(file.path(extdata, 'sel.imput.pairs.chrX.rds'))
+HiRES <- readRDS(file.path(extdata, 'HiRES.radial_glias.G1.chrX.rds')) # Dip-C predicted 3D structure
+exprs <- readRDS(file.path(extdata, 'expr.radial_glias.G1.chrX.rds'))# RNA-seq data
+pairs <- readRDS(file.path(extdata, 'sel.imput.pairs.chrX.rds')) # selected impute pairs
 
 ### supperloop
 supperloops <- GRanges(c('chrX:50555744-50635321',
@@ -208,12 +85,13 @@ HiRES.mat <- lapply(HiRES, function(.ele) {
   .ele$parental <- NULL
   .ele
 })
-l.mat <- lengths(HiRES.mat)
 HiRES.pat <- lapply(HiRES, function(.ele) {
   .ele <- .ele[.ele$parental=='(pat)']
   .ele$parental <- NULL
   .ele
 })
+## remove the cells without chrX structures
+l.mat <- lengths(HiRES.mat)
 l.pat <- lengths(HiRES.pat)
 k <- l.mat>0 & l.pat>0
 HiRES.mat <- HiRES.mat[k]
@@ -222,7 +100,7 @@ HiRES.pat <- HiRES.pat[k]
 HiRES <- paddingGRangesList(c(HiRES.mat, HiRES.pat))
 HiRES.mat.xyzs <- HiRES$xyzs[seq_along(HiRES.mat)]
 HiRES.pat.xyzs <- HiRES$xyzs[-seq_along(HiRES.mat)]
-## 
+## prepare the maternal and paternal GRanges object with x, y, z coordinates.
 HiRES.mat <- lapply(HiRES.mat.xyzs, function(.ele){
   gr <- HiRES$gr
   mcols(gr) <- .ele[, c('x', 'y', 'z')]
@@ -237,9 +115,10 @@ HiRES.pat <- lapply(HiRES.pat.xyzs, function(.ele){
 ## backbone color
 resolution <- 3
 backbone_colors <- matlab.like2(n=resolution*length(HiRES.mat[[1]]))
-backbone_bws <- backbone_colors
+backbone_bws <- backbone_colors ## defines the color assigned to the chrX allele
 backbone_bws[1001:(length(backbone_colors)-1000)] <- 'gray'
 
+## help function to check the volume of the 3D structure
 getV <- function(points){
   vol <- convhulln(points, options='Fa')$vol
 }
@@ -250,26 +129,31 @@ RMSD_mat_pat <- mapply(function(mat, pat){
   pat <- as.data.frame(mcols(pat))
   mat <- fill_NA(mat)
   pat <- fill_NA(pat)
-  pat <- alignCoor(pat, mat)
+  pat <- alignCoor(pat, mat) # do alignment first
+  ## normalized to its centroid
   mat.center <- colMeans(mat, na.rm = TRUE)
   pat.center <- colMeans(pat, na.rm = TRUE)
   mat <- t(t(mat) - mat.center)
   pat <- t(t(pat) - pat.center)
   mean(sqrt(rowSums((mat - pat)^2)), na.rm = TRUE)
 }, HiRES.mat, HiRES.pat)
+## data frame for Xist expression level, total expression level and
+## the RMSD between mat and pat
 XlinkExpr <- data.frame(Xist=exprs['Xist', ], total=colSums(exprs), RMSD=RMSD_mat_pat)
 XlinkExpr <- XlinkExpr[order(XlinkExpr$total), ]
-
+## plot the correlation between RMSD and total chrX expression level
 fit <- lm(RMSD ~ total, data = XlinkExpr)
 plot(XlinkExpr$total, XlinkExpr$RMSD,
-     xlab='Total expression level of X-lined gene', 
+     xlab='Total expression level of X-lined gene',
      ylab='RMSD between maternal and paternal')
 abline(fit, col = "blue", lwd=2)
 
 widgets <- lapply(c(head(rownames(XlinkExpr), n=2),
                     tail(rownames(XlinkExpr), n=2)), function(cell_id){
+    ## expressions in single cell
     exprSig <- geneX
     exprSig$score <- exprs[geneX$symbols, cell_id]
+    ## load the 3D structure for maternal and paternal
     mat_cell <- HiRES.mat[[cell_id]]
     mcols(mat_cell) <- fill_NA(as.data.frame(mcols(mat_cell)))
     pat_cell <- HiRES.pat[[cell_id]]
@@ -279,6 +163,8 @@ widgets <- lapply(c(head(rownames(XlinkExpr), n=2),
     ## condensed one is Xi
     v_mat <- getV(as.matrix(mcols(mat_cell)))
     v_pat <- getV(as.matrix(mcols(pat_cell)))
+    ## add additional information,
+    ## Here we use the selected interactions by impute phases for maternal
     mat_only_pairs <- pairs$mat[[cell_id]]
     mat_only_pairs$color <- 'black'
     mat_only_pairs$lwd <- 4
@@ -296,6 +182,7 @@ widgets <- lapply(c(head(rownames(XlinkExpr), n=2),
                                 show_coor=FALSE,
                                 lwd.backbone = 0.25,
                                 col.backbone = if(v_mat>v_pat) backbone_bws else backbone_colors)
+    ## and paternal only interactions by impute phases
     pat_only_pairs <- pairs$pat[[cell_id]]
     pat_only_pairs$color <- 'black'
     pat_only_pairs$lwd <- 4
@@ -322,43 +209,23 @@ widgets <- lapply(c(head(rownames(XlinkExpr), n=2),
 })
 ## low expression of X-linked genes
 widgets[[1]]
-widgets[[2]]
+#widgets[[2]]
 ## high expression of X-linked genes
-widgets[[3]]
+#widgets[[3]]
 widgets[[4]]
 ```
 
-Figure 4 showcases the geomeTriD package, demonstrating how it presents 3D models generated from [Tri-omic](https://doi.org/10.1038/s41592-025-02658-7).
+## Present single cell 3D structure for ChAIR data
 
-### Load Libraries
-
-```{r}
-library(geomeTriD)
-library(geomeTriD.documentation)
-library(GenomicRanges)
-library(colorRamps)
-library(geometry)
-```
+Here we present 3D genome models with integrated genomic signals derived from [Tri-omic](https://doi.org/10.1038/s41592-025-02658-7), also known as ChAIR (capture of chromatin Accessibility, Interaction, and RNA profiles). This method enables simultaneous mapping of chromatin accessibility, chromatin interactions, and gene expression. Paired-end tag (PET) data are used to reconstruct 3D genome structures, while the accompanying RNA-seq and ATAC-seq signals are visualized along these models.
 
 ```{r}
-### supperloop
-supperloops <- GRanges(c('chrX:50555744-50635321',
-                         'chrX:75725458-75764699', # 4933407K13RiK, NR_029443
-                         'chrX:103422010-103484957',
-                         'chrX:105040854-105117090')) # 5530601H04RiK, NR_015467 and Pbdc1
-names(supperloops) <- c('Firre', 'Dxz4', 'Xist/Tsix', 'x75')
-supperloops$label <- names(supperloops)
-supperloops$col <- 2:5 ## set colors for each element
-supperloops$type <- 'gene' ## set it as gene
-
-range <- GRanges('chrX:1-171031299')
-
+## load the 3D structure for PET data
 stage <- c('G1', 'S', 'G2M')
-
 extdata <- system.file('extdata', 'ChAIR', package = 'geomeTriD.documentation')
 ChAIR_PET_m <- import3dg(file.path(extdata, 'PET', paste0('patski.allele.', stage, '_2_m.pairs.chrX.3dg.gz')))
 ChAIR_PET_p <- import3dg(file.path(extdata, 'PET', paste0('patski.allele.', stage, '_2_p.pairs.chrX.3dg.gz')))
-
+## get the chrX coordinates for maternal and paternal
 ChAIR_PET_m <- lapply(ChAIR_PET_m, function(.ele) {
   seqlevelsStyle(.ele) <- 'UCSC'
   .ele$parental <- NULL
@@ -370,16 +237,15 @@ ChAIR_PET_p <- lapply(ChAIR_PET_p, function(.ele) {
   subsetByOverlaps(.ele, range)
 })
 
-
-# download the files and import the signals
-M <- lapply(stage, function(cc){
+# import the signals for ATAC-seq and RNA-seq for maternal and paternal
+M <- lapply(stage, function(cc){ ## maternal
   importGenomicSigs(c(ATAC=file.path(extdata, 'ATAC', paste0('patski.allele.', cc, '_2.M.bw')),
                       RNA=file.path(extdata, 'RNA', paste0('patski.allele.', cc, '_2.M.bw'))),
                       range = range,
                     cols = c('orange', 'red'),
                     format = 'BigWig')
   })
-P <- lapply(stage, function(cc){
+P <- lapply(stage, function(cc){ ## paternal
   importGenomicSigs(c(ATAC=file.path(extdata, 'ATAC', paste0('patski.allele.', cc, '_2.M.bw')),
                       RNA=file.path(extdata, 'RNA', paste0('patski.allele.', cc, '_2.M.bw'))),
                       range = range,
@@ -387,9 +253,10 @@ P <- lapply(stage, function(cc){
                     format = 'BigWig')
 })
 
+## set backbone color, make it easy to catch the genomic coordinates
 resolution <- 3
 backbone_colors <- rev(rainbow(n=resolution*length(ChAIR_PET_m[[1]])))
-
+## create threeJsGeometry objects for maternal and paternal cells
 M_cells <- mapply(ChAIR_PET_m, M, FUN=function(model, sig){
   cell <- view3dStructure(model[seqnames(model)=='chrX'],
                   feature.gr = supperloops,
@@ -423,6 +290,7 @@ P_cells <- mapply(ChAIR_PET_p, P, FUN=function(model, sig){
   c(cell, sl)
 }, SIMPLIFY = FALSE)
 
+## show the maternal and paternal structures side by side
 showPairs(M_cells[[1]], P_cells[[1]], title=c('mat G1', 'pat G1')) #G1
 showPairs(M_cells[[2]], P_cells[[2]], title=c('mat S', 'pat S')) #S
 showPairs(M_cells[[3]], P_cells[[3]], title=c('mat G2M', 'pat G2M')) #G2M
