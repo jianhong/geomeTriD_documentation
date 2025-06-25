@@ -1,0 +1,162 @@
+---
+title: "Figure 5C Vignette"
+author: "Jianhong Ou"
+vignette: >
+  %\VignetteIndexEntry{Figure 5C Vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+output:
+  html_document:
+  theme: simplex
+  toc: true
+  toc_float: true
+  toc_depth: 4
+  fig_caption: true
+---
+
+```{r setup, include=FALSE}
+suppressPackageStartupMessages({
+  library(geomeTriD)
+  library(geomeTriD.documentation)
+  library(GenomicRanges)
+  library(grid)
+  library(colorRamps)
+  library(TxDb.Mmusculus.UCSC.mm10.knownGene)
+  library(org.Mm.eg.db)
+  library(geometry)
+})
+knitr::opts_chunk$set(echo = TRUE, out.width = "900px")
+```
+
+# Figure 5C
+
+Figure 5C showcases the geomeTriD package, demonstrating how it presents 3D models along with multiple genomic signals mapped onto single-cell 3D structures.
+
+## Load Libraries
+
+```{r}
+library(geomeTriD)
+library(geomeTriD.documentation)
+library(GenomicRanges)
+library(colorRamps)
+library(TxDb.Mmusculus.UCSC.mm10.knownGene)
+library(org.Mm.eg.db)
+library(geometry)
+```
+
+## Present single cell 3D structure for ChAIR data
+
+Here we present 3D genome models with integrated genomic signals derived from [Tri-omic](https://doi.org/10.1038/s41592-025-02658-7), also known as ChAIR (capture of chromatin Accessibility, Interaction, and RNA profiles). This method enables simultaneous mapping of chromatin accessibility, chromatin interactions, and gene expression. Paired-end tag (PET) data are used to reconstruct 3D genome structures, while the accompanying RNA-seq and ATAC-seq signals are visualized along these models.
+
+```{r}
+## plot region
+range <- GRanges('chrX:1-20000000')
+## prepare features
+feature.gr <- getFeatureGR(txdb = TxDb.Mmusculus.UCSC.mm10.knownGene,
+                           org = org.Mm.eg.db,
+                           range = range)
+## load the 3D structure for PET data
+stage <- c('G1', 'S', 'G2M')
+extdata <- system.file('extdata', 'ChAIR', package = 'geomeTriD.documentation')
+ChAIR_PET_m <- import3dg(file.path(extdata, 'PET', paste0('patski.allele.', stage, '_2_m.pairs.chrX.3dg.gz')))
+ChAIR_PET_p <- import3dg(file.path(extdata, 'PET', paste0('patski.allele.', stage, '_2_p.pairs.chrX.3dg.gz')))
+## get the chrX coordinates for maternal and paternal
+ChAIR_PET_m <- lapply(ChAIR_PET_m, function(.ele) {
+  seqlevelsStyle(.ele) <- 'UCSC'
+  .ele$parental <- NULL
+  subsetByOverlaps(.ele, range)
+  })
+ChAIR_PET_p <- lapply(ChAIR_PET_p, function(.ele) {
+  seqlevelsStyle(.ele) <- 'UCSC'
+  .ele$parental <- NULL
+  subsetByOverlaps(.ele, range)
+})
+
+# import the signals for ATAC-seq and RNA-seq for maternal and paternal
+M <- lapply(stage, function(cc){ ## maternal
+  importGenomicSigs(c(ATAC=file.path(extdata, 'ATAC', paste0('patski.allele.', cc, '_2.M.bw')),
+                      RNA=file.path(extdata, 'RNA', paste0('patski.allele.', cc, '_2.M.bw'))),
+                      range = range,
+                    cols = c('orange', 'red'),
+                    format = 'BigWig')
+  })
+P <- lapply(stage, function(cc){ ## paternal
+  importGenomicSigs(c(ATAC=file.path(extdata, 'ATAC', paste0('patski.allele.', cc, '_2.M.bw')),
+                      RNA=file.path(extdata, 'RNA', paste0('patski.allele.', cc, '_2.M.bw'))),
+                      range = range,
+                    cols = c('orange', 'red'),
+                    format = 'BigWig')
+})
+
+## set backbone color, make it easy to catch the genomic coordinates
+resolution <- 3
+backbone_colors <- rev(rainbow(n=resolution*length(ChAIR_PET_m[[1]])))
+## only label the genes with high expression
+labelHighExpGene <- function(sig){
+  this.feature.gr <- feature.gr
+  expressed <- sig$RNA$dat[sig$RNA$dat$score>100]
+  this.feature.gr$label[countOverlaps(feature.gr, expressed)==0] <- NA
+  ## remove the genes with big size
+  this.feature.gr$label[width(this.feature.gr)>100000] <- NA
+  ## only show the first gene label if multiple high expressed gene
+  ## in the same region
+  l.rle <- rle(!is.na(this.feature.gr$label))
+  l.rle$values[l.rle$lengths<=3] <- TRUE ## merge the region with small gap
+  l.rle <- rle(inverse.rle(l.rle))
+  l <- cumsum(l.rle$lengths)
+  this.feature.gr$label[-l[l.rle$values]] <- NA
+  return(this.feature.gr)
+}
+  
+## create threeJsGeometry objects for maternal and paternal cells
+M_cells <- mapply(ChAIR_PET_m, M, FUN=function(model, sig){
+  cell <- view3dStructure(model,
+                  feature.gr = labelHighExpGene(sig),
+                  genomicSigs = sig,
+                  signalTransformFun = log1p,
+                  lwd.maxGenomicSigs = 8,
+                  reverseGenomicSigs = FALSE,
+                  renderer = 'none',
+                  resolution = resolution,
+                  col.backbone = rev(rainbow(n=resolution*length(model))),
+                  lwd.backbone = 0.25,
+                  lwd.gene = 1,
+                  region = range,
+                  show_coor = FALSE,
+                  cluster3Dpoints = TRUE)
+  # backbone <- extractBackbonePositions(cell)
+  # sl <- createTADGeometries(supperloops, backbone, type = 'sphere', alpha = 0.8)
+  # c(cell, sl)
+}, SIMPLIFY = FALSE)
+P_cells <- mapply(ChAIR_PET_p, P, FUN=function(model, sig){
+  cell <- view3dStructure(model,
+                  feature.gr = labelHighExpGene(sig),
+                  genomicSigs = sig,
+                  signalTransformFun = log1p,
+                  lwd.maxGenomicSigs = 8,
+                  reverseGenomicSigs = FALSE,
+                  renderer = 'none',
+                  resolution = resolution,
+                  col.backbone = rev(rainbow(n=resolution*length(model))),
+                  lwd.backbone = 0.25,
+                  lwd.gene = 1,
+                  region = range,
+                  show_coor = FALSE,
+                  cluster3Dpoints = TRUE)
+  # backbone <- extractBackbonePositions(cell)
+  # sl <- createTADGeometries(supperloops, backbone, type = 'sphere', alpha = 0.8)
+  # c(cell, sl)
+}, SIMPLIFY = FALSE)
+
+## show the maternal and paternal structures side by side
+showPairs(M_cells[[1]], P_cells[[1]], title=c('mat G1', 'pat G1')) #G1
+showPairs(M_cells[[2]], P_cells[[2]], title=c('mat S', 'pat S')) #S
+showPairs(M_cells[[3]], P_cells[[3]], title=c('mat G2M', 'pat G2M')) #G2M
+
+```
+
+## SessionInfo
+
+```{r sessionInfo}
+sessionInfo()
+```

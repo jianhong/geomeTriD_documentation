@@ -18,7 +18,7 @@ Suggests: knitr, rmarkdown, pkgdown, bookdown, pander,
     TxDb.Mmusculus.UCSC.mm39.knownGene, TxDb.Mmusculus.UCSC.mm10.knownGene,
     biomaRt, grid,
     org.Dr.eg.db, org.Hs.eg.db, org.Mm.eg.db, rgl,
-    rtracklayer, txdbmaker, clusterCrit, colorRamps, geometry,
+    rtracklayer, txdbmaker, colorRamps, geometry,
     dendextend
 License: MIT + file LICENSE
 Encoding: UTF-8

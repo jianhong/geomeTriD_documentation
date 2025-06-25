@@ -19,7 +19,6 @@ suppressPackageStartupMessages({
   library(geomeTriD)
   library(geomeTriD.documentation)
   library(GenomicRanges)
-  library(clusterCrit)
   library(grid)
   library(colorRamps)
   library(TxDb.Mmusculus.UCSC.mm10.knownGene)
@@ -211,88 +210,6 @@ widgets[[1]]
 ## high expression of X-linked genes
 #widgets[[3]]
 widgets[[4]]
-```
-
-## Present single cell 3D structure for ChAIR data
-
-Here we present 3D genome models with integrated genomic signals derived from [Tri-omic](https://doi.org/10.1038/s41592-025-02658-7), also known as ChAIR (capture of chromatin Accessibility, Interaction, and RNA profiles). This method enables simultaneous mapping of chromatin accessibility, chromatin interactions, and gene expression. Paired-end tag (PET) data are used to reconstruct 3D genome structures, while the accompanying RNA-seq and ATAC-seq signals are visualized along these models.
-
-```{r}
-## load the 3D structure for PET data
-stage <- c('G1', 'S', 'G2M')
-extdata <- system.file('extdata', 'ChAIR', package = 'geomeTriD.documentation')
-ChAIR_PET_m <- import3dg(file.path(extdata, 'PET', paste0('patski.allele.', stage, '_2_m.pairs.chrX.3dg.gz')))
-ChAIR_PET_p <- import3dg(file.path(extdata, 'PET', paste0('patski.allele.', stage, '_2_p.pairs.chrX.3dg.gz')))
-## get the chrX coordinates for maternal and paternal
-ChAIR_PET_m <- lapply(ChAIR_PET_m, function(.ele) {
-  seqlevelsStyle(.ele) <- 'UCSC'
-  .ele$parental <- NULL
-  subsetByOverlaps(.ele, range)
-  })
-ChAIR_PET_p <- lapply(ChAIR_PET_p, function(.ele) {
-  seqlevelsStyle(.ele) <- 'UCSC'
-  .ele$parental <- NULL
-  subsetByOverlaps(.ele, range)
-})
-
-# import the signals for ATAC-seq and RNA-seq for maternal and paternal
-M <- lapply(stage, function(cc){ ## maternal
-  importGenomicSigs(c(ATAC=file.path(extdata, 'ATAC', paste0('patski.allele.', cc, '_2.M.bw')),
-                      RNA=file.path(extdata, 'RNA', paste0('patski.allele.', cc, '_2.M.bw'))),
-                      range = range,
-                    cols = c('orange', 'red'),
-                    format = 'BigWig')
-  })
-P <- lapply(stage, function(cc){ ## paternal
-  importGenomicSigs(c(ATAC=file.path(extdata, 'ATAC', paste0('patski.allele.', cc, '_2.M.bw')),
-                      RNA=file.path(extdata, 'RNA', paste0('patski.allele.', cc, '_2.M.bw'))),
-                      range = range,
-                    cols = c('orange', 'red'),
-                    format = 'BigWig')
-})
-
-## set backbone color, make it easy to catch the genomic coordinates
-resolution <- 3
-backbone_colors <- rev(rainbow(n=resolution*length(ChAIR_PET_m[[1]])))
-## create threeJsGeometry objects for maternal and paternal cells
-M_cells <- mapply(ChAIR_PET_m, M, FUN=function(model, sig){
-  cell <- view3dStructure(model[seqnames(model)=='chrX'],
-                  feature.gr = supperloops,
-                  genomicSigs = sig,
-                  signalTransformFun = log1p,
-                  lwd.maxGenomicSigs = 8,
-                  reverseGenomicSigs = FALSE,
-                  renderer = 'none',
-                  resolution = resolution,
-                  col.backbone = backbone_colors,
-                  region = range,
-                  show_coor = FALSE)
-  backbone <- extractBackbonePositions(cell)
-  sl <- createTADGeometries(supperloops, backbone, type = 'sphere', alpha = 0.8)
-  c(cell, sl)
-}, SIMPLIFY = FALSE)
-P_cells <- mapply(ChAIR_PET_p, P, FUN=function(model, sig){
-  cell <- view3dStructure(model[seqnames(model)=='chrX'],
-                  feature.gr = supperloops,
-                  genomicSigs = sig,
-                  signalTransformFun = log1p,
-                  lwd.maxGenomicSigs = 8,
-                  reverseGenomicSigs = FALSE,
-                  renderer = 'none',
-                  resolution = resolution,
-                  col.backbone = backbone_colors,
-                  region = range,
-                  show_coor = FALSE)
-  backbone <- extractBackbonePositions(cell)
-  sl <- createTADGeometries(supperloops, backbone, type = 'sphere', alpha = 0.8)
-  c(cell, sl)
-}, SIMPLIFY = FALSE)
-
-## show the maternal and paternal structures side by side
-#showPairs(M_cells[[1]], P_cells[[1]], title=c('mat G1', 'pat G1')) #G1
-showPairs(M_cells[[2]], P_cells[[2]], title=c('mat S', 'pat S')) #S
-#showPairs(M_cells[[3]], P_cells[[3]], title=c('mat G2M', 'pat G2M')) #G2M
-
 ```
 
 ## SessionInfo

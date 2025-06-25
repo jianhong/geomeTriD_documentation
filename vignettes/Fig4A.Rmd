@@ -21,12 +21,8 @@ suppressPackageStartupMessages({
   library(GenomicRanges)
   library(TxDb.Hsapiens.UCSC.hg38.knownGene)
   library(org.Hs.eg.db)
-  library(clusterCrit)
   library(grid)
   library(colorRamps)
-  library(TxDb.Mmusculus.UCSC.mm10.knownGene)
-  library(org.Mm.eg.db)
-  library(geometry)
 })
 knitr::opts_chunk$set(echo = TRUE, out.width = "900px")
 ```
@@ -43,7 +39,6 @@ library(geomeTriD.documentation)
 library(GenomicRanges)
 library(TxDb.Hsapiens.UCSC.hg38.knownGene)
 library(org.Hs.eg.db)
-library(clusterCrit)
 library(colorRamps)
 ```
 
