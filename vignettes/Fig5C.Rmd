@@ -77,14 +77,14 @@ M <- lapply(stage, function(cc){ ## maternal
   importGenomicSigs(c(ATAC=file.path(extdata, 'ATAC', paste0('patski.allele.', cc, '_2.M.bw')),
                       RNA=file.path(extdata, 'RNA', paste0('patski.allele.', cc, '_2.M.bw'))),
                       range = range,
-                    cols = c('orange', 'red'),
+                    cols = c('darkgreen', 'darkred'),
                     format = 'BigWig')
   })
 P <- lapply(stage, function(cc){ ## paternal
   importGenomicSigs(c(ATAC=file.path(extdata, 'ATAC', paste0('patski.allele.', cc, '_2.M.bw')),
                       RNA=file.path(extdata, 'RNA', paste0('patski.allele.', cc, '_2.M.bw'))),
                       range = range,
-                    cols = c('orange', 'red'),
+                    cols = c('darkgreen', 'darkred'),
                     format = 'BigWig')
 })
 
@@ -101,7 +101,7 @@ labelHighExpGene <- function(sig){
   ## only show the first gene label if multiple high expressed gene
   ## in the same region
   l.rle <- rle(!is.na(this.feature.gr$label))
-  l.rle$values[l.rle$lengths<=3] <- TRUE ## merge the region with small gap
+  l.rle$values[l.rle$lengths<=5] <- TRUE ## merge the region with small gap
   l.rle <- rle(inverse.rle(l.rle))
   l <- cumsum(l.rle$lengths)
   this.feature.gr$label[-l[l.rle$values]] <- NA
@@ -124,9 +124,6 @@ M_cells <- mapply(ChAIR_PET_m, M, FUN=function(model, sig){
                   region = range,
                   show_coor = FALSE,
                   cluster3Dpoints = TRUE)
-  # backbone <- extractBackbonePositions(cell)
-  # sl <- createTADGeometries(supperloops, backbone, type = 'sphere', alpha = 0.8)
-  # c(cell, sl)
 }, SIMPLIFY = FALSE)
 P_cells <- mapply(ChAIR_PET_p, P, FUN=function(model, sig){
   cell <- view3dStructure(model,
@@ -143,9 +140,6 @@ P_cells <- mapply(ChAIR_PET_p, P, FUN=function(model, sig){
                   region = range,
                   show_coor = FALSE,
                   cluster3Dpoints = TRUE)
-  # backbone <- extractBackbonePositions(cell)
-  # sl <- createTADGeometries(supperloops, backbone, type = 'sphere', alpha = 0.8)
-  # c(cell, sl)
 }, SIMPLIFY = FALSE)
 
 ## show the maternal and paternal structures side by side
@@ -153,6 +147,12 @@ showPairs(M_cells[[1]], P_cells[[1]], title=c('mat G1', 'pat G1')) #G1
 showPairs(M_cells[[2]], P_cells[[2]], title=c('mat S', 'pat S')) #S
 showPairs(M_cells[[3]], P_cells[[3]], title=c('mat G2M', 'pat G2M')) #G2M
 
+## check the size 
+getV <- function(points){
+  vol <- convhulln(as.matrix(mcols(points)), options='Fa')$vol
+}
+sapply(ChAIR_PET_m, getV)
+sapply(ChAIR_PET_p, getV)
 ```
 
 ## SessionInfo

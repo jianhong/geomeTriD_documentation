@@ -25,6 +25,7 @@ suppressPackageStartupMessages({
   library(grid)
   library(colorRamps)
   library(dendextend)
+  library(geometry)
 })
 knitr::opts_chunk$set(echo = TRUE, out.width = "900px")
 ```
@@ -44,6 +45,7 @@ library(TxDb.Hsapiens.UCSC.hg38.knownGene)
 library(org.Hs.eg.db)
 library(colorRamps)
 library(dendextend)
+library(geometry)
 ```
 
 ## Visualize single cell 3D structure for STROM data
@@ -219,7 +221,8 @@ plotdistance <- function(xyz){
   spatialDistanceHeatmap(xyz,
                          col=colorRampPalette(c("#871518", "#FF0000",
                                                 "#FFFFFF", "#00008B",
-                                                '#20205F'))(100))
+                                                '#20205F'))(100),
+                         components = c('compartment'))
   ## use green color line to present the point cluster boundaries.
   pid <- unique(pc$cluster)
   for(id in pid){
@@ -338,6 +341,11 @@ showPairs(MERFISH_cells[[1]], MERFISH_cells[[2]])
 showPairs(MERFISH_cells[[4]], MERFISH_cells[[6]])
 showPairs(MERFISH_cells[[3]], MERFISH_cells[[5]])
 
+## check the size 
+getV <- function(i){
+  vol <- convhulln(as.matrix(mcols(fill_NA(chr21[[i]]))), options='Fa')$vol
+}
+sapply(unlist(centers_cell), getV)
 ```
 
 
