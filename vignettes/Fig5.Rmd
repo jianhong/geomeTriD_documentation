@@ -250,6 +250,12 @@ plotdistance(imr90_18_20[[cc1[1, '8']]])
 showPairs(cells_18_20[[cc1[1, '26']]], cells_18_20[[cc1[2, '26']]])
 
 plotdistance(imr90_18_20[[cc1[1, '26']]])
+
+## check the size 
+getV <- function(i){
+  vol <- convhulln(as.matrix(mcols(fill_NA(imr90_18_20[[i]]))), options='Fa')$vol
+}
+sapply(cc1[1, c('9', '56', '8', '26')], getV)
 ```
 
 ## Visualize single cell 3D structure for MERFISH data
@@ -340,12 +346,6 @@ MERFISH_cells <- lapply(unlist(centers_cell), function(i){
 showPairs(MERFISH_cells[[1]], MERFISH_cells[[2]])
 showPairs(MERFISH_cells[[4]], MERFISH_cells[[6]])
 showPairs(MERFISH_cells[[3]], MERFISH_cells[[5]])
-
-## check the size 
-getV <- function(i){
-  vol <- convhulln(as.matrix(mcols(fill_NA(chr21[[i]]))), options='Fa')$vol
-}
-sapply(unlist(centers_cell), getV)
 ```
 
 

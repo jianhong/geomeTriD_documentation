@@ -79,7 +79,7 @@ par("mfcol"=c(1, 2))
 image(mat_sigmoid, useRaster=TRUE, col = rev(hcl.colors(n=12, "OrRd")))
 image(sdm_FLAMINGO, useRaster = TRUE, col = hcl.colors(n=12, "OrRd"))
 
-## check RMSD
+## check Distance-Contact correlation
 safe_scale <- function(x) {
   rng <- range(x, na.rm = TRUE)
   if (diff(rng) == 0) return(x)
@@ -90,16 +90,24 @@ sdm_80 <- function(x){
   sdm_80 <- rowsum(t(sdm_80), rep(seq.int(80), each=50)[seq.int(ncol(sdm_80))])
   sdm_80 <- t(sdm_80)
   sdm_scaled_safe <- safe_scale(sdm_80)
-  sdm_scaled_safe <- 1-sdm_scaled_safe
 }
 
 mat_scaled_safe <- safe_scale(m)
 sdm_80_FLAMINGO <- sdm_80(sdm_FLAMINGO)
 sdm_80_superRec <- sdm_80(sdm_superRec)
 
-(RMSD_FLAMINGO <- sqrt(mean((mat_scaled_safe - sdm_80_FLAMINGO)^2, na.rm=TRUE)))
-(RMSD_superRec <- sqrt(mean((mat_scaled_safe - sdm_80_superRec)^2, na.rm=TRUE)))
+(cor_FLAMINGO <- cor.test(as.numeric(mat_scaled_safe), 
+                     as.numeric(1/sdm_80_FLAMINGO), method = 'spearman'))
+(cor_superRec <- cor.test(as.numeric(mat_scaled_safe), 
+                     as.numeric(1/sdm_80_superRec), method = 'spearman'))
 
+## check Reconstruction Error
+re <- function(d_model, hic_sig){
+  sum(hic_sig*(d_model - 1/hic_sig)^2, na.rm = TRUE)
+}
+
+re(sdm_80_FLAMINGO, mat_scaled_safe)
+re(sdm_80_superRec, mat_scaled_safe)
 ```
 
 
