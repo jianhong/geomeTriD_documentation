@@ -68,6 +68,9 @@ ChAIR_PET_m <- lapply(ChAIR_PET_m, function(.ele) {
   .ele$parental <- NULL
   subsetByOverlaps(.ele, range)
   })
+```
+
+```{r eval=FALSE}
 ChAIR_PET_p <- lapply(ChAIR_PET_p, function(.ele) {
   seqlevelsStyle(.ele) <- 'UCSC'
   .ele$parental <- NULL
@@ -88,10 +91,6 @@ P <- lapply(stage, function(cc){ ## paternal
                     cols = c('darkgreen', 'darkred'),
                     format = 'BigWig')
 })
-```
-
-```{r eval=FALSE}
-
 ## set backbone color, make it easy to catch the genomic coordinates
 resolution <- 3
 backbone_colors <- rev(rainbow(n=resolution*length(ChAIR_PET_m[[1]])))
