@@ -66,10 +66,6 @@ hic_sig <- importGInteractions('https://ftp.ncbi.nlm.nih.gov/geo/series/GSE63nnn
                                format = 'hic', ranges = GRanges('X:1-20000000'),
                                resolution = 250000, out='GInteractions')
 seqlevelsStyle(regions(hic_sig)) <- 'UCSC'
-```
-
-
-```{r eval=FALSE}
 anchors <- anchorIds(hic_sig)
 rg <- range(regions(hic_sig))
 w <- unique(width(regions(hic_sig)))
