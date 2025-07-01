@@ -78,6 +78,10 @@ sigmoid_transform <- function(mat, center_value, steepness){
   1 / (1 + exp(-steepness * (m - center_value)))
 }
 mat_sigmoid <- sigmoid_transform(m, center_value = mean(m, na.rm=TRUE), steepness = 5)
+```
+
+
+```{r eval=FALSE}
 par("mfcol"=c(1, 2))
 image(mat_sigmoid, useRaster=TRUE, col = rev(hcl.colors(n=12, "OrRd")))
 image(sdm_FLAMINGO, useRaster = TRUE, col = hcl.colors(n=12, "OrRd"))
