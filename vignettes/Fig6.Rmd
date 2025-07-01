@@ -48,7 +48,6 @@ library(InteractionSet)
 # original interaction map vs. spatialDistanceHeatmap
 
 gr <- GRanges('chrX:1-20000000')
-
 ## load FLAMINGO results
 FLAMINGO_chrX_5kb <- importFLAMINGO('https://github.com/wangjr03/FLAMINGO/raw/refs/heads/main/predictions/GM12878/chrX_5kb.txt')[[1]]
 sdm_FLAMINGO <- spatialDistanceMatrix(subsetByOverlaps(FLAMINGO_chrX_5kb, gr), fill_NA = TRUE)
@@ -63,11 +62,14 @@ superRec_chrX_5kb <- importSuperRec(file.path(extdata, 'combined_30.chrX.SuperRe
 sdm_superRec<- spatialDistanceMatrix(subsetByOverlaps(superRec_chrX_5kb, gr), fill_NA = TRUE)
 
 ## load hic signal matrix
-# hic_sig <- importGInteractions('https://ftp.ncbi.nlm.nih.gov/geo/series/GSE63nnn/GSE63525/suppl/GSE63525%5FGM12878%5Fdilution%5Fcombined%5F30.hic',
-#                                format = 'hic', ranges = GRanges('X:1-20000000'),
-#                                resolution = 250000, out='GInteractions')
-hic_sig <- readRDS(file.path(extdata, 'hic_sig_250K.gi.rds'))
+hic_sig <- importGInteractions('https://ftp.ncbi.nlm.nih.gov/geo/series/GSE63nnn/GSE63525/suppl/GSE63525%5FGM12878%5Fdilution%5Fcombined%5F30.hic',
+                               format = 'hic', ranges = GRanges('X:1-20000000'),
+                               resolution = 250000, out='GInteractions')
 seqlevelsStyle(hic_sig) <- 'UCSC'
+```
+
+
+```{r eval=FALSE}
 anchors <- anchorIds(hic_sig)
 rg <- range(regions(hic_sig))
 w <- unique(width(regions(hic_sig)))
