@@ -129,9 +129,8 @@ validate the prediction of 3D structures.</p>
 <span><span class="va">hic_sig</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/trackViewer/man/importGInteractions.html" class="external-link">importGInteractions</a></span><span class="op">(</span><span class="st">'https://ftp.ncbi.nlm.nih.gov/geo/series/GSE63nnn/GSE63525/suppl/GSE63525%5FGM12878%5Fdilution%5Fcombined%5F30.hic'</span>,</span>
 <span>                               format <span class="op">=</span> <span class="st">'hic'</span>, ranges <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/GenomicRanges/man/GRanges-class.html" class="external-link">GRanges</a></span><span class="op">(</span><span class="st">'X:1-20000000'</span><span class="op">)</span>,</span>
 <span>                               resolution <span class="op">=</span> <span class="fl">250000</span>, out<span class="op">=</span><span class="st">'GInteractions'</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/GenomeInfoDb/man/seqlevelsStyle.html" class="external-link">seqlevelsStyle</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/InteractionSet/man/interaction-accessors.html" class="external-link">regions</a></span><span class="op">(</span><span class="va">hic_sig</span><span class="op">)</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">'UCSC'</span></span></code></pre></div>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">anchors</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/InteractionSet/man/interaction-accessors.html" class="external-link">anchorIds</a></span><span class="op">(</span><span class="va">hic_sig</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/GenomeInfoDb/man/seqlevelsStyle.html" class="external-link">seqlevelsStyle</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/InteractionSet/man/interaction-accessors.html" class="external-link">regions</a></span><span class="op">(</span><span class="va">hic_sig</span><span class="op">)</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">'UCSC'</span></span>
+<span><span class="va">anchors</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/InteractionSet/man/interaction-accessors.html" class="external-link">anchorIds</a></span><span class="op">(</span><span class="va">hic_sig</span><span class="op">)</span></span>
 <span><span class="va">rg</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/InteractionSet/man/interaction-accessors.html" class="external-link">regions</a></span><span class="op">(</span><span class="va">hic_sig</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">w</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/start.html" class="external-link">width</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/InteractionSet/man/interaction-accessors.html" class="external-link">regions</a></span><span class="op">(</span><span class="va">hic_sig</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">gr</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/IRanges/man/IPosRanges-class.html" class="external-link">slidingWindows</a></span><span class="op">(</span><span class="va">rg</span>, width <span class="op">=</span> <span class="va">w</span>, step <span class="op">=</span> <span class="va">w</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
@@ -145,9 +144,10 @@ validate the prediction of 3D structures.</p>
 <span><span class="va">mat_sigmoid</span> <span class="op">&lt;-</span> <span class="fu">sigmoid_transform</span><span class="op">(</span><span class="va">m</span>, center_value <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">m</span>, na.rm<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>, steepness <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="st">"mfcol"</span><span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/image.html" class="external-link">image</a></span><span class="op">(</span><span class="va">mat_sigmoid</span>, useRaster<span class="op">=</span><span class="cn">TRUE</span>, col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/S4Vectors/man/Vector-class.html" class="external-link">rev</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/grDevices/palettes.html" class="external-link">hcl.colors</a></span><span class="op">(</span>n<span class="op">=</span><span class="fl">12</span>, <span class="st">"OrRd"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/image.html" class="external-link">image</a></span><span class="op">(</span><span class="va">sdm_FLAMINGO</span>, useRaster <span class="op">=</span> <span class="cn">TRUE</span>, col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grDevices/palettes.html" class="external-link">hcl.colors</a></span><span class="op">(</span>n<span class="op">=</span><span class="fl">12</span>, <span class="st">"OrRd"</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co">## check Distance-Contact correlation</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/image.html" class="external-link">image</a></span><span class="op">(</span><span class="va">sdm_FLAMINGO</span>, useRaster <span class="op">=</span> <span class="cn">TRUE</span>, col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grDevices/palettes.html" class="external-link">hcl.colors</a></span><span class="op">(</span>n<span class="op">=</span><span class="fl">12</span>, <span class="st">"OrRd"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="Fig6_files/figure-html/unnamed-chunk-1-1.png" width="900px"></p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">## check Distance-Contact correlation</span></span>
 <span><span class="va">safe_scale</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">rng</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="va">x</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span>  <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="va">rng</span><span class="op">)</span> <span class="op">==</span> <span class="fl">0</span><span class="op">)</span> <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
@@ -165,22 +165,48 @@ validate the prediction of 3D structures.</p>
 <span><span class="va">sdm_80_superRec</span> <span class="op">&lt;-</span> <span class="fu">sdm_80</span><span class="op">(</span><span class="va">sdm_superRec</span><span class="op">)</span></span>
 <span></span>
 <span><span class="op">(</span><span class="va">cor_FLAMINGO</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.test.html" class="external-link">cor.test</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">mat_scaled_safe</span><span class="op">)</span>, </span>
-<span>                     <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="va">sdm_80_FLAMINGO</span><span class="op">)</span>, method <span class="op">=</span> <span class="st">'spearman'</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="op">(</span><span class="va">cor_superRec</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.test.html" class="external-link">cor.test</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">mat_scaled_safe</span><span class="op">)</span>, </span>
-<span>                     <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="va">sdm_80_superRec</span><span class="op">)</span>, method <span class="op">=</span> <span class="st">'spearman'</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co">## check Reconstruction Error</span></span>
+<span>                     <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="va">sdm_80_FLAMINGO</span><span class="op">)</span>, method <span class="op">=</span> <span class="st">'spearman'</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Warning in cor.test.default(as.numeric(mat_scaled_safe),</span></span>
+<span><span class="co">## as.numeric(1/sdm_80_FLAMINGO), : Cannot compute exact p-value with ties</span></span></code></pre>
+<pre><code><span><span class="co">## </span></span>
+<span><span class="co">##  Spearman's rank correlation rho</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## data:  as.numeric(mat_scaled_safe) and as.numeric(1/sdm_80_FLAMINGO)</span></span>
+<span><span class="co">## S = 9.739e+09, p-value &lt; 2.2e-16</span></span>
+<span><span class="co">## alternative hypothesis: true rho is not equal to 0</span></span>
+<span><span class="co">## sample estimates:</span></span>
+<span><span class="co">##       rho </span></span>
+<span><span class="co">## 0.7770931</span></span></code></pre>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="op">(</span><span class="va">cor_superRec</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.test.html" class="external-link">cor.test</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">mat_scaled_safe</span><span class="op">)</span>, </span>
+<span>                     <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="va">sdm_80_superRec</span><span class="op">)</span>, method <span class="op">=</span> <span class="st">'spearman'</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Warning in cor.test.default(as.numeric(mat_scaled_safe),</span></span>
+<span><span class="co">## as.numeric(1/sdm_80_superRec), : Cannot compute exact p-value with ties</span></span></code></pre>
+<pre><code><span><span class="co">## </span></span>
+<span><span class="co">##  Spearman's rank correlation rho</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## data:  as.numeric(mat_scaled_safe) and as.numeric(1/sdm_80_superRec)</span></span>
+<span><span class="co">## S = 4.9934e+10, p-value &lt; 2.2e-16</span></span>
+<span><span class="co">## alternative hypothesis: true rho is not equal to 0</span></span>
+<span><span class="co">## sample estimates:</span></span>
+<span><span class="co">##        rho </span></span>
+<span><span class="co">## -0.1428887</span></span></code></pre>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">## check Reconstruction Error</span></span>
 <span><span class="va">re</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">d_model</span>, <span class="va">hic_sig</span><span class="op">)</span><span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">hic_sig</span><span class="op">*</span><span class="op">(</span><span class="va">d_model</span> <span class="op">-</span> <span class="fl">1</span><span class="op">/</span><span class="va">hic_sig</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
-<span><span class="fu">re</span><span class="op">(</span><span class="va">sdm_80_FLAMINGO</span>, <span class="va">mat_scaled_safe</span><span class="op">)</span></span>
-<span><span class="fu">re</span><span class="op">(</span><span class="va">sdm_80_superRec</span>, <span class="va">mat_scaled_safe</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">re</span><span class="op">(</span><span class="va">sdm_80_FLAMINGO</span>, <span class="va">mat_scaled_safe</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 42149.23</span></span></code></pre>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">re</span><span class="op">(</span><span class="va">sdm_80_superRec</span>, <span class="va">mat_scaled_safe</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 39530.13</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="sessioninfo">SessionInfo<a class="anchor" aria-label="anchor" href="#sessioninfo"></a>
 </h3>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## R version 4.5.1 (2025-06-13)</span></span>
 <span><span class="co">## Platform: x86_64-pc-linux-gnu</span></span>
