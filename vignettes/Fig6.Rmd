@@ -66,13 +66,13 @@ hic_sig <- importGInteractions('https://ftp.ncbi.nlm.nih.gov/geo/series/GSE63nnn
                                format = 'hic', ranges = GRanges('X:1-20000000'),
                                resolution = 250000, out='GInteractions')
 seqlevelsStyle(hic_sig) <- 'UCSC'
-anchors <- anchorIds(hic_sig)
-rg <- range(regions(hic_sig))
-w <- unique(width(regions(hic_sig)))
 ```
 
 
 ```{r eval=FALSE}
+anchors <- anchorIds(hic_sig)
+rg <- range(regions(hic_sig))
+w <- unique(width(regions(hic_sig)))
 gr <- slidingWindows(rg, width = w, step = w)[[1]]
 df <- data.frame(i=anchors[[1]], j=anchors[[2]], score=log10(mcols(hic_sig)$score))
 m <- xtabs(score ~ i + j, data = df)
