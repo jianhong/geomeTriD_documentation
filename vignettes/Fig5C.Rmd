@@ -72,7 +72,9 @@ ChAIR_PET_p <- lapply(ChAIR_PET_p, function(.ele) {
   .ele$parental <- NULL
   subsetByOverlaps(.ele, range)
 })
+```
 
+```{r eval=FALSE}
 # import the signals for ATAC-seq and RNA-seq for maternal and paternal
 M <- lapply(stage, function(cc){ ## maternal
   importGenomicSigs(c(ATAC=file.path(extdata, 'ATAC', paste0('patski.allele.', cc, '_2.M.bw')),
@@ -108,10 +110,7 @@ labelHighExpGene <- function(sig){
   this.feature.gr$label[-l[l.rle$values]] <- NA
   return(this.feature.gr)
 }
-```
 
-
-```{r eval=FALSE}
 ## create threeJsGeometry objects for maternal and paternal cells
 M_cells <- mapply(ChAIR_PET_m, M, FUN=function(model, sig){
   cell <- view3dStructure(model,
