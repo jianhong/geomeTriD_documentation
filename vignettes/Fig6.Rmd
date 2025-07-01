@@ -48,6 +48,7 @@ library(InteractionSet)
 # original interaction map vs. spatialDistanceHeatmap
 
 gr <- GRanges('chrX:1-20000000')
+
 ## load FLAMINGO results
 FLAMINGO_chrX_5kb <- importFLAMINGO('https://github.com/wangjr03/FLAMINGO/raw/refs/heads/main/predictions/GM12878/chrX_5kb.txt')[[1]]
 sdm_FLAMINGO <- spatialDistanceMatrix(subsetByOverlaps(FLAMINGO_chrX_5kb, gr), fill_NA = TRUE)
