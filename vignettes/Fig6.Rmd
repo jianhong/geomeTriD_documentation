@@ -23,6 +23,7 @@ suppressPackageStartupMessages({
   library(InteractionSet)
 })
 knitr::opts_chunk$set(echo = TRUE, out.width = "900px")
+options(rgl.useNULL = TRUE)
 ```
 
 # Figure 5
