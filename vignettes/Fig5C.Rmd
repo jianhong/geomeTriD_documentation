@@ -56,6 +56,9 @@ range <- GRanges('chrX:1-20000000')
 feature.gr <- getFeatureGR(txdb = TxDb.Mmusculus.UCSC.mm10.knownGene,
                            org = org.Mm.eg.db,
                            range = range)
+```
+
+```{r eval=FALSE}
 ## load the 3D structure for PET data
 stage <- c('G1', 'S', 'G2M')
 extdata <- system.file('extdata', 'ChAIR', package = 'geomeTriD.documentation')
@@ -72,9 +75,6 @@ ChAIR_PET_p <- lapply(ChAIR_PET_p, function(.ele) {
   .ele$parental <- NULL
   subsetByOverlaps(.ele, range)
 })
-```
-
-```{r eval=FALSE}
 # import the signals for ATAC-seq and RNA-seq for maternal and paternal
 M <- lapply(stage, function(cc){ ## maternal
   importGenomicSigs(c(ATAC=file.path(extdata, 'ATAC', paste0('patski.allele.', cc, '_2.M.bw')),
