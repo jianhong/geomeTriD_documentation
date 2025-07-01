@@ -61,10 +61,10 @@ feature.gr <- getFeatureGR(txdb = TxDb.Mmusculus.UCSC.mm10.knownGene,
 stage <- c('G1', 'S', 'G2M')
 extdata <- system.file('extdata', 'ChAIR', package = 'geomeTriD.documentation')
 ChAIR_PET_m <- import3dg(file.path(extdata, 'PET', paste0('patski.allele.', stage, '_2_m.pairs.chrX.3dg.gz')))
+ChAIR_PET_p <- import3dg(file.path(extdata, 'PET', paste0('patski.allele.', stage, '_2_p.pairs.chrX.3dg.gz')))
 ```
 
 ```{r eval=FALSE}
-ChAIR_PET_p <- import3dg(file.path(extdata, 'PET', paste0('patski.allele.', stage, '_2_p.pairs.chrX.3dg.gz')))
 ## get the chrX coordinates for maternal and paternal
 ChAIR_PET_m <- lapply(ChAIR_PET_m, function(.ele) {
   seqlevelsStyle(.ele) <- 'UCSC'
