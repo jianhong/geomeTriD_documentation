@@ -1,0 +1,161 @@
+---
+title: "Figure 4A Vignette"
+author: "Jianhong Ou"
+vignette: >
+  %\VignetteIndexEntry{Figure 4A Vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+output:
+  html_document:
+  theme: simplex
+  toc: true
+  toc_float: true
+  toc_depth: 4
+  fig_caption: true
+---
+
+```{r setup, include=FALSE}
+suppressPackageStartupMessages({
+  library(geomeTriD)
+  library(geomeTriD.documentation)
+  library(GenomicRanges)
+  library(TxDb.Hsapiens.UCSC.hg38.knownGene)
+  library(org.Hs.eg.db)
+  library(grid)
+  library(colorRamps)
+})
+knitr::opts_chunk$set(echo = TRUE, out.width = "900px")
+```
+
+# Figure 4A
+
+Figure 4A highlights the geomeTriD package, illustrating its ability to visualize 3D models derived from [Dip-C](https://doi.org/10.1126/science.aat5641), along with multiple genomic signals mapped onto single-cell 3D structures.
+
+## Load Libraries
+
+```{r loadLibrary}
+library(geomeTriD)
+library(geomeTriD.documentation)
+library(GenomicRanges)
+library(TxDb.Hsapiens.UCSC.hg38.knownGene)
+library(org.Hs.eg.db)
+library(colorRamps)
+```
+
+## Present single cell 3D structure for human Dip-C data
+
+This data were downloaded from GEO with accession [GSE117874](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE117874).
+We will present the four supperloop anchors in chrX of GM12878 cell with segment and sphere style.
+
+```{r}
+## set the data folder, all data are available in the extdata folder of this package
+extdata <- system.file('extdata', 'GSE117874', package='geomeTriD.documentation')
+hickit_3dg <- dir(extdata, '3dg', full.names = TRUE)
+hickit <- import3dg(hickit_3dg, parental_postfix=c('a', 'b'))[[1]]
+## split it into maternal and paternal 3D structures.
+hickit.a <- hickit[hickit$parental=='a'] ## mat
+hickit.b <- hickit[hickit$parental=='b'] ## pat
+## delete the parental information
+hickit.a$parental <- hickit.b$parental <- NULL
+## set data range
+range <- GRanges('X:1-155270560')
+## prepare the coordinates for the four superloops. 
+supperloops <- GRanges(c('X:56800000-56850000',
+                      'X:75350000-75400000',
+                      'X:115000000-115050000',
+                      'X:130850000-130900000'))
+names(supperloops) <- c('ICCE', 'x75', 'DXZ4', 'FIRRE')
+supperloops$label <- names(supperloops)
+supperloops$col <- 2:5 ## set colors for each element
+supperloops$type <- 'gene' ## set it as gene
+## subset the data by given range
+hickit.a <- subsetByOverlaps(hickit.a, range)
+hickit.b <- subsetByOverlaps(hickit.b, range)
+hickit.a <- alignCoor(hickit.a, hickit.b)
+## prepare the backbone colors
+resolution <- 3
+backbone_colors <- matlab.like2(n=resolution*length(hickit.a))
+## add the superloops as segments
+c1 <- view3dStructure(hickit.a,
+                      feature.gr=supperloops,
+                      renderer = 'none',
+                      region = range,
+                      resolution=resolution,
+                      show_coor=FALSE,
+                      lwd.backbone = 0.25,
+                      col.backbone = backbone_colors,
+                      lwd.gene=6)
+c2 <- view3dStructure(hickit.b,
+                      feature.gr=supperloops,
+                      renderer = 'none',
+                      region = range,
+                      resolution=resolution,
+                      show_coor=FALSE,
+                      lwd.backbone = 0.25,
+                      col.backbone = backbone_colors,
+                      lwd.gene=6)
+c2 <- lapply(c2, function(.ele) { ## put pat to right pannel
+  .ele$side = 'right'
+  .ele
+})
+## view the data
+threeJsViewer(c1, c2, title = c('GM12878 cell 3 mat', 'GM12878 cell 3 pat'))
+#widget <-threeJsViewer(c1, c2, title = c('mat', 'pat'))
+#tempfile <- 'Fig4.html'
+#htmlwidgets::saveWidget(widget, file=tempfile)
+#utils::browseURL(tempfile)
+```
+```{r}
+## view the superloops as spheres
+addFeaturesAsSphere <- function(obj, features, ...){
+  backbone <- extractBackbonePositions(obj)
+  spheres <- createTADGeometries(features, backbone, ...)
+  c(obj, spheres)
+}
+mat <- view3dStructure(hickit.a, renderer = 'none', region = range,
+                       resolution=resolution, show_coor=FALSE,
+                       lwd.backbone = 0.25,
+                       col.backbone = backbone_colors)
+mat <- addFeaturesAsSphere(mat, supperloops, alpha = 0.5)
+pat <- view3dStructure(hickit.b, renderer = 'none', region = range,
+                       resolution=resolution, show_coor=FALSE,
+                       lwd.backbone = 0.25,
+                       col.backbone = backbone_colors)
+mat <- addFeaturesAsSphere(mat, supperloops, alpha = 0.5)
+pat <- addFeaturesAsSphere(pat, supperloops, alpha = 0.5)
+showPairs(mat, pat, title = c('GM12878 cell 3 mat', 'GM12878 cell 3 pat'))
+```
+
+### Plot all cells to show the cell heterogeneity
+```{r}
+## load the processed data.
+hickit.a <- readRDS(file.path(extdata, 'hickit.a.rds'))
+hickit.b <- readRDS(file.path(extdata, 'hickit.b.rds'))
+widgets <- mapply(function(a, b, i){
+  mat <- view3dStructure(a, renderer = 'none', region = range,
+                         resolution=resolution, show_coor=FALSE, lwd.backbone = 0.25,
+                      col.backbone = backbone_colors)
+  mat <- addFeaturesAsSphere(mat, supperloops, alpha = 0.5)
+  pat <- view3dStructure(b, renderer = 'none', region = range,
+                         resolution=resolution, show_coor=FALSE, lwd.backbone = 0.25,
+                      col.backbone = backbone_colors)
+  pat <- addFeaturesAsSphere(pat, supperloops, alpha = 0.5)
+  showPairs(mat, pat, title = paste('cell', i, c('mat', 'pat')),
+            background = c("#11111188",
+                           "#222222DD",
+                           "#222222DD",
+                           "#11111188"))
+}, hickit.a, hickit.b, names(hickit.a), SIMPLIFY = FALSE)
+
+widgets[[1]]
+widgets[[2]]
+```
+
+
+
+
+## SessionInfo
+
+```{r sessionInfo}
+sessionInfo()
+```
