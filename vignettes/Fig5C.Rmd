@@ -73,9 +73,6 @@ ChAIR_PET_p <- lapply(ChAIR_PET_p, function(.ele) {
   .ele$parental <- NULL
   subsetByOverlaps(.ele, range)
 })
-```
-
-```{r eval=FALSE}
 # import the signals for ATAC-seq and RNA-seq for maternal and paternal
 M <- lapply(stage, function(cc){ ## maternal
   importGenomicSigs(c(ATAC=file.path(extdata, 'ATAC', paste0('patski.allele.', cc, '_2.M.bw')),
@@ -85,12 +82,15 @@ M <- lapply(stage, function(cc){ ## maternal
                     format = 'BigWig')
   })
 P <- lapply(stage, function(cc){ ## paternal
-  importGenomicSigs(c(ATAC=file.path(extdata, 'ATAC', paste0('patski.allele.', cc, '_2.M.bw')),
-                      RNA=file.path(extdata, 'RNA', paste0('patski.allele.', cc, '_2.M.bw'))),
+  importGenomicSigs(c(ATAC=file.path(extdata, 'ATAC', paste0('patski.allele.', cc, '_2.P.bw')),
+                      RNA=file.path(extdata, 'RNA', paste0('patski.allele.', cc, '_2.P.bw'))),
                       range = range,
                     cols = c('darkgreen', 'darkred'),
                     format = 'BigWig')
 })
+```
+
+```{r eval=FALSE}
 
 ## set backbone color, make it easy to catch the genomic coordinates
 resolution <- 3
