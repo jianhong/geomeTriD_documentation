@@ -60,15 +60,15 @@ superRec_chrX_5kb <- importSuperRec(file.path(extdata, 'combined_30.chrX.SuperRe
                                     file.path(extdata, 'combined_30.chrX.SuperRec.input.subset.gz'),
                                     binsize = 5000, chr='chrX')[[1]]
 sdm_superRec<- spatialDistanceMatrix(subsetByOverlaps(superRec_chrX_5kb, gr), fill_NA = TRUE)
-```
-
-
-```{r eval=FALSE}
 
 ## load hic signal matrix
 hic_sig <- importGInteractions('https://ftp.ncbi.nlm.nih.gov/geo/series/GSE63nnn/GSE63525/suppl/GSE63525%5FGM12878%5Fdilution%5Fcombined%5F30.hic',
                                format = 'hic', ranges = GRanges('X:1-20000000'),
                                resolution = 250000, out='GInteractions')
+```
+
+
+```{r eval=FALSE}
 seqlevelsStyle(hic_sig) <- 'UCSC'
 anchors <- anchorIds(hic_sig)
 rg <- range(regions(hic_sig))
