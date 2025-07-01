@@ -51,10 +51,6 @@ gr <- GRanges('chrX:1-20000000')
 ## load FLAMINGO results
 FLAMINGO_chrX_5kb <- importFLAMINGO('https://github.com/wangjr03/FLAMINGO/raw/refs/heads/main/predictions/GM12878/chrX_5kb.txt')[[1]]
 sdm_FLAMINGO <- spatialDistanceMatrix(subsetByOverlaps(FLAMINGO_chrX_5kb, gr), fill_NA = TRUE)
-```
-
-
-```{r eval=FALSE}
 
 ## load SuperRec results
 extdata <- system.file('extdata', 'GSE63525', package = 'geomeTriD.documentation')
@@ -64,6 +60,10 @@ superRec_chrX_5kb <- importSuperRec(file.path(extdata, 'combined_30.chrX.SuperRe
                                     file.path(extdata, 'combined_30.chrX.SuperRec.input.subset.gz'),
                                     binsize = 5000, chr='chrX')[[1]]
 sdm_superRec<- spatialDistanceMatrix(subsetByOverlaps(superRec_chrX_5kb, gr), fill_NA = TRUE)
+```
+
+
+```{r eval=FALSE}
 
 ## load hic signal matrix
 hic_sig <- importGInteractions('https://ftp.ncbi.nlm.nih.gov/geo/series/GSE63nnn/GSE63525/suppl/GSE63525%5FGM12878%5Fdilution%5Fcombined%5F30.hic',
