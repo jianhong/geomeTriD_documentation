@@ -45,12 +45,45 @@ library(colorRamps)
 ## Present single cell 3D structure for human Dip-C data
 
 This data were downloaded from GEO with accession [GSE117874](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE117874).
-We will present the four supperloop anchors in chrX of GM12878 cell with segment and sphere style.
+We will first present the GM12878 cell 3 with all chromosomes.
+```{r, out.width="500px"}
+## set supperloop positions
+supperloops <- GRanges(c('Xa:56800000-56850000',
+                         'Xa:75350000-75400000',
+                         'Xa:115000000-115050000',
+                         'Xa:130850000-130900000',
+                         'Xb:56800000-56850000',
+                         'Xb:75350000-75400000',
+                         'Xb:115000000-115050000',
+                         'Xb:130850000-130900000'))
+names(supperloops) <- c('ICCE', 'x75', 'DXZ4', 'FIRRE',
+                        'ICCE', 'x75', 'DXZ4', 'FIRRE')
+supperloops$label <- names(supperloops)
+supperloops$col <- c(2:5, 2:5) ## set colors for each element
+supperloops$type <- 'gene' ## set it as gene
 
-```{r}
 ## set the data folder, all data are available in the extdata folder of this package
 extdata <- system.file('extdata', 'GSE117874', package='geomeTriD.documentation')
 hickit_3dg <- dir(extdata, '3dg', full.names = TRUE)
+## load the data
+hickit <- import3dg(hickit_3dg, parental_postfix=NULL)[[1]]
+## set colors to emphersize the Xa and Xb
+col.backbone <- gray.colors(n = length(seqlevels(hickit)))
+names(col.backbone) <- seqlevels(hickit)
+col.backbone['Xa'] <- 'brown'
+col.backbone['Xb'] <- 'orange'
+
+cell3 <- view3dStructure(hickit, feature.gr = supperloops,
+                renderer = 'none', resolution=1,
+                col.backbone = col.backbone, lwd.backbone = 0.25)
+backbone <- extractBackbonePositions(cell3, names(cell3)[grepl('backbone', names(cell3))])
+supperloop_spheres <- createTADGeometries(supperloops, backbone, alpha = 0.8)
+threeJsViewer(cell3, supperloop_spheres)
+```
+
+
+We will then present the four supperloop anchors in chrX of GM12878 cell with segment and sphere style.
+```{r}
 hickit <- import3dg(hickit_3dg, parental_postfix=c('a', 'b'))[[1]]
 ## split it into maternal and paternal 3D structures.
 hickit.a <- hickit[hickit$parental=='a'] ## mat

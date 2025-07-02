@@ -160,8 +160,10 @@ importSuperRec <- function(filenames, superRecInputFilenames, binsize, chr){
 #' xyz <- import3dg(f3dg)
 import3dg <- function(filenames, comment.char="#", ...,
                       parental_postfix=c("(pat)", "(mat)")){
-  stopifnot(length(parental_postfix)==2)
-  stopifnot(is.character(parental_postfix))
+  if(length(parental_postfix)) {
+    stopifnot(length(parental_postfix)==2)
+    stopifnot(is.character(parental_postfix))
+  }
   dat <- lapply(filenames, function(.ele) read.delim(.ele, header = FALSE,
                                                      comment.char=comment.char,
                                                      ...))
@@ -181,16 +183,20 @@ import3dg <- function(filenames, comment.char="#", ...,
     })
     .ele <- do.call(rbind, .ele)
     
-    parental1 <- grepl(parental_postfix[1], .ele[, 1])
-    parental2 <- grepl(parental_postfix[2], .ele[, 1])
-    if(any(parental1) | any(parental2)){
-      .ele$parental[parental1] <- parental_postfix[1]
-      .ele$parental[parental2] <- parental_postfix[2]
-      .ele$parental[!(parental1|parental2)] <- NA
-      parental_postfix <- gsub('\\(|\\)', '.', parental_postfix)
-      .ele$V1 <- sub(paste0(parental_postfix[2], '$'), '',
-                     sub(paste0(parental_postfix[1], '$'), '',
+    if(length(parental_postfix)){
+      parental1 <- grepl(parental_postfix[1], .ele[, 1])
+      parental2 <- grepl(parental_postfix[2], .ele[, 1])
+      if(any(parental1) | any(parental2)){
+        .ele$parental[parental1] <- parental_postfix[1]
+        .ele$parental[parental2] <- parental_postfix[2]
+        .ele$parental[!(parental1|parental2)] <- NA
+        parental_postfix <- gsub('\\(|\\)', '.', parental_postfix)
+        .ele$V1 <- sub(paste0(parental_postfix[2], '$'), '',
+                       sub(paste0(parental_postfix[1], '$'), '',
                            .ele$V1))
+      }else{
+        .ele$parental <- NA
+      }
     }else{
       .ele$parental <- NA
     }
