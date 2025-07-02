@@ -7,7 +7,7 @@ Last modified: 2025-01-24
 
 The `geomeTriD` is a Bioconductor package to visualize genomic
 interactions along with annotation for NGS dataset such as HiC, HiChIP,
-PLAC-seq, ChIA-PET, and HiCAR data.
+PLAC-seq, ChIA-PET, HiCAR, Dip-C, STORM, MERFISH, HiRES, and ChAIR data.
 
 ### Pre-requisites
 
@@ -65,10 +65,14 @@ browseVignettes("geomeTriD.documentation")
 ```
 
 The source code for showcases are available at
-[Fig1](https://jianhong.github.io/geomeTriD_documentation/articles/Fig1.html),
-[Fig2](https://jianhong.github.io/geomeTriD_documentation/articles/Fig2.html)
-and
-[Fig3](https://jianhong.github.io/geomeTriD_documentation/articles/Fig3.html)
+[visualization of A/B compartments](https://jianhong.github.io/geomeTriD_documentation/articles/Fig1.html),
+[visualization of micro-compartment](https://jianhong.github.io/geomeTriD_documentation/articles/Fig2.html),
+[visualization of cREs](https://jianhong.github.io/geomeTriD_documentation/articles/Fig3.html),
+[visualization of Dip-C](https://jianhong.github.io/geomeTriD_documentation/articles/Fig4A.html),
+[visualization of HiRES](https://jianhong.github.io/geomeTriD_documentation/articles/Fig4B.html),
+[clustering single cell 3D models](https://jianhong.github.io/geomeTriD_documentation/articles/Fig5.html),
+[visualization of ChAIR](https://jianhong.github.io/geomeTriD_documentation/articles/Fig5C.html),
+and [quick sub-region model validation by spatial ditance matrix](https://jianhong.github.io/geomeTriD_documentation/articles/Fig6.html)
 
 ### Contributions and Support
 
