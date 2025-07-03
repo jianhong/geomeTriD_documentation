@@ -27,9 +27,9 @@ knitr::opts_chunk$set(echo = TRUE, out.width = "900px")
 options(rgl.useNULL = TRUE)
 ```
 
-# Figure 5
+# Figure 6
 
-The Figure 5 is the showcase for `geomeTriD` package to validate the prediction of 3D structures.
+The Figure 6 is the showcase for `geomeTriD` package to validate the prediction of 3D structures.
 
 ## Load Libraries
 
