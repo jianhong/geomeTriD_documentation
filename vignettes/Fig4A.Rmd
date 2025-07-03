@@ -67,6 +67,10 @@ extdata <- system.file('extdata', 'GSE117874', package='geomeTriD.documentation'
 hickit_3dg <- dir(extdata, '3dg', full.names = TRUE)
 ## load the data
 hickit <- import3dg(hickit_3dg, parental_postfix=NULL)[[1]]
+## subset sample chromosome information to avoid the tool overload
+hickit <- hickit[seq_along(hickit) %in% 
+                   sample.int(length(hickit), size = 5000) |
+                   seqnames(hickit) %in% c('Xa', 'Xb')]
 ## set colors to emphersize the Xa and Xb
 col.backbone <- gray.colors(n = length(seqlevels(hickit)))
 names(col.backbone) <- seqlevels(hickit)
