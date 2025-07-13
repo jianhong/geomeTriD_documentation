@@ -5,12 +5,12 @@ articles:
   Fig1: Fig1.html
   Fig2: Fig2.html
   Fig3: Fig3.html
-  Fig4A: Fig4A.html
-  Fig4B: Fig4B.html
-  Fig5: Fig5.html
-  Fig5C: Fig5C.html
+  Fig4: Fig4.html
   Fig6: Fig6.html
-last_built: 2025-07-03T00:16Z
+  FigS3: FigS3.html
+  FigS4: FigS4.html
+  FigS5: FigS5.html
+last_built: 2025-07-13T15:20Z
 urls:
   reference: https://jianhong.github.io/geomeTriD_documentation/reference
   article: https://jianhong.github.io/geomeTriD_documentation/articles
