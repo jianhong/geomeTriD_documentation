@@ -1,7 +1,7 @@
 Function demo for geomeTriD
 ================
 Authors: Jianhong Ou[^1]<br/>
-Last modified: 2025-01-24
+Last modified: 2025-07-13
 
 ## Overview
 
