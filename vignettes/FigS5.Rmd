@@ -1,8 +1,8 @@
 ---
-title: "Figure 5C Vignette"
+title: "Figure S5 Vignette"
 author: "Jianhong Ou"
 vignette: >
-  %\VignetteIndexEntry{Figure 5C Vignette}
+  %\VignetteIndexEntry{Figure S5 Vignette}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 output:
@@ -30,9 +30,9 @@ knitr::opts_chunk$set(echo = TRUE, out.width = "900px")
 options(rgl.useNULL = TRUE)
 ```
 
-# Figure 5C
+# Figure S5
 
-Figure 5C showcases the geomeTriD package, demonstrating how it presents 3D models along with multiple genomic signals mapped onto single-cell 3D structures.
+Figure S5 showcases the `geomeTriD` package, demonstrating how it presents 3D models along with multiple genomic signals mapped onto single-cell 3D structures.
 
 ## Load Libraries
 

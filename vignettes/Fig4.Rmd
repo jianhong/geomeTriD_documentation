@@ -1,8 +1,8 @@
 ---
-title: "Figure 5 Vignette"
+title: "Figure 4 Vignette"
 author: "Jianhong Ou"
 vignette: >
-  %\VignetteIndexEntry{Figure 5 Vignette}
+  %\VignetteIndexEntry{Figure 4 Vignette}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 output:
@@ -30,9 +30,9 @@ suppressPackageStartupMessages({
 knitr::opts_chunk$set(echo = TRUE, out.width = "900px")
 ```
 
-# Figure 5
+# Figure 4
 
-Figure 5 showcases the capabilities of the `geomeTriD` package in visualizing data from STORM (Stochastic Optical Reconstruction Microscopy) and MERFISH (Multiplexed Error-Robust Fluorescence In Situ Hybridization). Since these methods provide real 3D spatial coordinates, the resulting point clouds can be clustered based on spatial distance. The spatial distance matrix can also be used to identify topologically associating domains (TADs) and compartments. In the context of single-cell 3D structures, this figure further demonstrates how geomeTriD can be used to cluster individual cells through analysis of their spatial distance matrices by multiple methods.
+Figure 4 showcases the capabilities of the `geomeTriD` package in visualizing data from STORM (Stochastic Optical Reconstruction Microscopy) and MERFISH (Multiplexed Error-Robust Fluorescence In Situ Hybridization). Since these methods provide real 3D spatial coordinates, the resulting point clouds can be clustered based on spatial distance. The spatial distance matrix can also be used to identify topologically associating domains (TADs) and compartments. In the context of single-cell 3D structures, this figure further demonstrates how geomeTriD can be used to cluster individual cells through analysis of their spatial distance matrices by multiple methods.
 
 ## Load Libraries
 

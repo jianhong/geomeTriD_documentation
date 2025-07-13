@@ -1,8 +1,8 @@
 ---
-title: "Figure 4B Vignette"
+title: "Figure S4 HiRES Vignette"
 author: "Jianhong Ou"
 vignette: >
-  %\VignetteIndexEntry{Figure 4B Vignette}
+  %\VignetteIndexEntry{Figure S4 HiRES Vignette}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 output:
@@ -28,9 +28,9 @@ suppressPackageStartupMessages({
 knitr::opts_chunk$set(echo = TRUE, out.width = "900px")
 ```
 
-# Figure 4B
+# Figure S4 HiRES
 
-Figure 4B showcases the geomeTriD package, demonstrating how it presents 3D models along with multiple genomic signals mapped onto single-cell 3D structures.
+Figure S4 HiRES showcases the `geomeTriD` package, demonstrating how it presents 3D models along with multiple genomic signals mapped onto single-cell 3D structures.
 
 ## Load Libraries
 
