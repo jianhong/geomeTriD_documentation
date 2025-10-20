@@ -1,8 +1,8 @@
 ---
-title: "Figure 6 Vignette"
+title: "Figure S6 Vignette"
 author: "Jianhong Ou"
 vignette: >
-  %\VignetteIndexEntry{Figure 6 Vignette}
+  %\VignetteIndexEntry{Figure S6 Vignette}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 output:
