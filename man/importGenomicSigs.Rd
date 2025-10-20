@@ -22,6 +22,14 @@ A list of track object
 Import genomic signals for given range.
 }
 \examples{
-# example code
+library(GenomicRanges)
+range <- GRanges('chrX:10000000-11000000')
+# get the file folder
+extdata <- system.file('extdata', 'ChAIR', package = 'geomeTriD.documentation')
+# import the signals for ATAC-seq
+ATAC_G1 <- importGenomicSigs(file.path(extdata, 'ATAC', 'patski.allele.G1_2.M.bw'),
+                             range = range,
+                             cols = c('darkgreen', 'darkred'),
+                             format = 'BigWig')
 
 }

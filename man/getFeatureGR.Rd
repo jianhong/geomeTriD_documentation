@@ -33,6 +33,12 @@ Generate annotation features (feature.gr for \link[geomeTriD]{view3dStructure})
 from TxDb and Org object.
 }
 \examples{
-# example code
+library(TxDb.Hsapiens.UCSC.hg38.knownGene)
+library(org.Hs.eg.db)
+library(GenomicRanges)
+range <- GRanges("chr21:28000001-29200000")
+feature.gr <- getFeatureGR(txdb = TxDb.Hsapiens.UCSC.hg38.knownGene,
+                org = org.Hs.eg.db,
+                range = range)
 
 }

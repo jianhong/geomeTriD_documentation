@@ -30,6 +30,11 @@ A list of GInteractions object
 Download files and import interactions
 }
 \examples{
-# example code
+library(GenomicRanges)
+range_chr8<- GRanges('chr8:85550000-85800000')
+url <- paste0("https://ftp.ncbi.nlm.nih.gov/geo/samples/GSM6281nnn/",
+ "GSM6281851/suppl/GSM6281851_RCMC_BR1_merged_allCap_DMSO_mm39.merged.50.mcool")
+gi <- importGInteractionsFromUrl(urls=url, resolution=500, range=range_chr8,
+                                 format='cool', normalization='balanced')
 
 }

@@ -16,3 +16,11 @@ A list with element 'gr' represent the genomic ranges and
 \description{
 Make all GRanges object in a list same length by filling with NA
 }
+\examples{
+library(GenomicRanges)
+gr <- GRanges('chr1', IRanges(1:10, width=1), x=1:10, y=1:10, z=1:10)
+xyzs <- list(gr1=gr[c(1, 3, 5, 7, 9)],
+             gr2=gr[c(2, 4, 6, 8, 10)])
+paddingGRangesList(xyzs)
+
+}

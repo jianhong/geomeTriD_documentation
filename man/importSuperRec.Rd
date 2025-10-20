@@ -24,6 +24,10 @@ An object of GRangesList
 Import SuperRec output to a GRangesList Object
 }
 \examples{
-# example code
+extdata <- system.file('extdata', 'GSE63525', package = 'geomeTriD.documentation')
+superRec_chrX_5kb <- importSuperRec(
+  file.path(extdata, 'combined_30.chrX.SuperRec.txt.gz'),
+  file.path(extdata, 'combined_30.chrX.SuperRec.input.subset.gz'),
+  binsize = 5000, chr='chrX')[[1]]
 
 }

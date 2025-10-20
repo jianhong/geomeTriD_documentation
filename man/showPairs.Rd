@@ -20,6 +20,21 @@ A \link[GenomicRanges:GRanges-class]{GRanges} object
 Show a pair of geometries side by side.
 }
 \examples{
-# example code
-
+library(GenomicRanges)
+library(geomeTriD)
+extdata <- system.file('extdata', 'GSE117874', package='geomeTriD.documentation')
+hickit_3dg <- dir(extdata, '3dg', full.names = TRUE)
+hickit <- import3dg(hickit_3dg, parental_postfix=c('a', 'b'))[[1]]
+## prepare two data to show
+hickit.a <- hickit[hickit$parental=='a'] ## mat
+hickit.b <- hickit[hickit$parental=='b'] ## pat
+## set data range
+range <- GRanges('X:50000000-60000000')
+c1 <- view3dStructure(hickit.a,
+             renderer = 'none',
+             region = range)
+c2 <- view3dStructure(hickit.b,
+              renderer = 'none',
+              region = range)
+showPairs(c1, c2)
 }

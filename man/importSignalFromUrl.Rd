@@ -22,6 +22,18 @@ A list of track object
 Download files and import signals.
 }
 \examples{
-# example code
+library(GenomicRanges)
+range <- GRanges('chr4:50000-100000')
+## set the URLs
+prefix <- 'https://www.encodeproject.org/files/'
+url <- c(H3K9me3 = 'ENCFF776OVW/@download/ENCFF776OVW.bigWig')
+urls <- paste0(prefix, url)
+names(urls) <- names(url)
+# download the files and import the signals
+# genomicSigs <- importSignalFromUrl(urls, range = range,
+#                                     cols = list(
+#                                       'H3K9me3'=c('#000011', 'blue'),
+#                                       'H3K27ac'=c('#111100', 'orange')),
+#                                     format = 'BigWig')
 
 }

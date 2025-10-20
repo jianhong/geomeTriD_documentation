@@ -11,9 +11,16 @@
 #' @importFrom trackViewer importScore setTrackStyleParam
 #' @importFrom R.utils gunzip
 #' @examples
-#' # example code
+#' library(GenomicRanges)
+#' range <- GRanges('chrX:10000000-11000000')
+#' # get the file folder
+#' extdata <- system.file('extdata', 'ChAIR', package = 'geomeTriD.documentation')
+#' # import the signals for ATAC-seq
+#' ATAC_G1 <- importGenomicSigs(file.path(extdata, 'ATAC', 'patski.allele.G1_2.M.bw'),
+#'                              range = range,
+#'                              cols = c('darkgreen', 'darkred'),
+#'                              format = 'BigWig')
 #' 
-
 importGenomicSigs <- function(paths, range, cols, format='BigWig'){
   stopifnot(is.character(paths) || is.character(unlist(paths)))
   stopifnot(is(range, 'GRanges'))
@@ -50,7 +57,19 @@ downloadFiles <- function(urls){
 #' @importFrom methods is
 #' @export
 #' @examples
-#' # example code
+#' library(GenomicRanges)
+#' range <- GRanges('chr4:50000-100000')
+#' ## set the URLs
+#' prefix <- 'https://www.encodeproject.org/files/'
+#' url <- c(H3K9me3 = 'ENCFF776OVW/@@download/ENCFF776OVW.bigWig')
+#' urls <- paste0(prefix, url)
+#' names(urls) <- names(url)
+#' # download the files and import the signals
+#' # genomicSigs <- importSignalFromUrl(urls, range = range,
+#' #                                     cols = list(
+#' #                                       'H3K9me3'=c('#000011', 'blue'),
+#' #                                       'H3K27ac'=c('#111100', 'orange')),
+#' #                                     format = 'BigWig')
 #' 
 importSignalFromUrl <- function(urls, range, cols, format='BigWig'){
   stopifnot(is.character(urls))
@@ -69,7 +88,12 @@ importSignalFromUrl <- function(urls, range, cols, format='BigWig'){
 #' @importFrom utils read.delim
 #' @export
 #' @examples
-#' # example code
+#' chrs <- paste0('chr', c(1, 'X'))
+#' gm12878 <- paste0('https://github.com/wangjr03/FLAMINGO/',
+#'                   'raw/refs/heads/main/predictions/GM12878/',
+#'                   chrs, '_5kb.txt')
+#' names(gm12878) <- chrs
+#' gm12878.gl <- importFLAMINGO(gm12878)
 #' 
 importFLAMINGO <- function(filenames){
   dat <- lapply(filenames, function(.ele) read.delim(.ele, header = FALSE))
@@ -96,7 +120,12 @@ importFLAMINGO <- function(filenames){
 #' @importFrom utils read.delim
 #' @export
 #' @examples
-#' # example code
+#' cells <- 1:3
+#' gm12878 <- paste0('https://github.com/wangjr03/Tensor-FLAMINGO/raw/refs/',
+#'                'heads/main/predictions/10kb/GM12878_Dip-C/FLAMINGO_Cell_',
+#'                 cells, '.txt')
+#' names(gm12878) <- cells
+#' gm12878.gl <- importTensorFLAMINGO(gm12878, binsize=10000, chr='chr21')
 #' 
 importTensorFLAMINGO <- function(filenames, binsize, chr){
   stopifnot(is.numeric(binsize))
@@ -124,7 +153,11 @@ importTensorFLAMINGO <- function(filenames, binsize, chr){
 #' @importFrom utils read.delim read.table
 #' @export
 #' @examples
-#' # example code
+#' extdata <- system.file('extdata', 'GSE63525', package = 'geomeTriD.documentation')
+#' superRec_chrX_5kb <- importSuperRec(
+#'   file.path(extdata, 'combined_30.chrX.SuperRec.txt.gz'),
+#'   file.path(extdata, 'combined_30.chrX.SuperRec.input.subset.gz'),
+#'   binsize = 5000, chr='chrX')[[1]]
 #' 
 importSuperRec <- function(filenames, superRecInputFilenames, binsize, chr){
   stopifnot(is.numeric(binsize))
@@ -221,7 +254,12 @@ import3dg <- function(filenames, comment.char="#", ...,
 #' @importFrom trackViewer importGInteractions
 #' @importFrom utils read.delim
 #' @examples
-#' # example code
+#' library(GenomicRanges)
+#' range_chr8<- GRanges('chr8:85550000-85800000')
+#' url <- paste0("https://ftp.ncbi.nlm.nih.gov/geo/samples/GSM6281nnn/",
+#'  "GSM6281851/suppl/GSM6281851_RCMC_BR1_merged_allCap_DMSO_mm39.merged.50.mcool")
+#' gi <- importGInteractionsFromUrl(urls=url, resolution=500, range=range_chr8,
+#'                                  format='cool', normalization='balanced')
 #' 
 importGInteractionsFromUrl <- function(urls, resolution, range,
                                        format='cool', normalization='balanced'){
@@ -253,7 +291,13 @@ importGInteractionsFromUrl <- function(urls, resolution, range,
 #' @importFrom GenomicFeatures genes
 #' @importFrom IRanges subsetByOverlaps
 #' @examples
-#' # example code
+#' library(TxDb.Hsapiens.UCSC.hg38.knownGene)
+#' library(org.Hs.eg.db)
+#' library(GenomicRanges)
+#' range <- GRanges("chr21:28000001-29200000")
+#' feature.gr <- getFeatureGR(txdb = TxDb.Hsapiens.UCSC.hg38.knownGene,
+#'                 org = org.Hs.eg.db,
+#'                 range = range)
 #' 
 getFeatureGR <- function(txdb, org, range,
                          keytype='ENTREZID',
@@ -291,8 +335,23 @@ getFeatureGR <- function(txdb, org, range,
 #' @export
 #' @importFrom geomeTriD threeJsViewer
 #' @examples
-#' # example code
-#' 
+#' library(GenomicRanges)
+#' library(geomeTriD)
+#' extdata <- system.file('extdata', 'GSE117874', package='geomeTriD.documentation')
+#' hickit_3dg <- dir(extdata, '3dg', full.names = TRUE)
+#' hickit <- import3dg(hickit_3dg, parental_postfix=c('a', 'b'))[[1]]
+#' ## prepare two data to show
+#' hickit.a <- hickit[hickit$parental=='a'] ## mat
+#' hickit.b <- hickit[hickit$parental=='b'] ## pat
+#' ## set data range
+#' range <- GRanges('X:50000000-60000000')
+#' c1 <- view3dStructure(hickit.a,
+#'              renderer = 'none',
+#'              region = range)
+#' c2 <- view3dStructure(hickit.b,
+#'               renderer = 'none',
+#'               region = range)
+#' showPairs(c1, c2)
 showPairs <- function(a, b, height = NULL, ...){
   b <- lapply(b, function(.ele) {
     .ele$side = 'right'
@@ -311,6 +370,12 @@ showPairs <- function(a, b, height = NULL, ...){
 #' @importFrom GenomicRanges GRangesList
 #' @importFrom IRanges findOverlaps disjoin slidingWindows
 #' @importFrom S4Vectors queryHits subjectHits mcols mcols<-
+#' @examples
+#' library(GenomicRanges)
+#' gr <- GRanges('chr1', IRanges(1:10, width=1), x=1:10, y=1:10, z=1:10)
+#' xyzs <- list(gr1=gr[c(1, 3, 5, 7, 9)],
+#'              gr2=gr[c(2, 4, 6, 8, 10)])
+#' paddingGRangesList(xyzs)
 #' 
 paddingGRangesList <- function(xyzs){
   if(!is(xyzs, 'GRangesList')) xyzs <- GRangesList(xyzs)
@@ -352,7 +417,11 @@ paddingGRangesList <- function(xyzs){
 #' @return A list of xyz.
 #' @importFrom geomeTriD fill_NA
 #' @export
-#' 
+#' @examples
+#' xyz <- data.frame(x=1:10, y=1:10, z=1:10)
+#' xyzs <- list(list(a=xyz[c(1, 3, 5, 7, 9), ],
+#'              b=xyz[c(2, 4, 6, 8, 10), ]))
+#' out <- aggregateXYZs(xyzs)
 aggregateXYZs <- function(xyz.list, FUN=mean, na.rm=FALSE, ...){
   stopifnot(is.list(xyz.list))
   cn <- c('x', 'y', 'z')

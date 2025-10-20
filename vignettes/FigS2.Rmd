@@ -1,0 +1,190 @@
+---
+title: "Figure S2 Vignette"
+author: "Jianhong Ou"
+vignette: >
+  %\VignetteIndexEntry{Figure S2 Vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+output:
+  html_document:
+  theme: simplex
+  toc: true
+  toc_float: true
+  toc_depth: 4
+  fig_caption: true
+---
+  
+```{r setup, include=FALSE}
+suppressPackageStartupMessages({
+  library(geomeTriD)
+  library(geomeTriD.documentation)
+  library(GenomicRanges)
+  library(TxDb.Mmusculus.UCSC.mm39.knownGene)
+  library(org.Mm.eg.db)
+  library(trackViewer)
+  library(RColorBrewer)
+})
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Figure S2
+
+The Figure S2 is the showcase for `geomeTriD` package to present multiple genomic 
+signals along with 3D models for Sox2 microcompartment/loop. 
+
+### Load Libraries
+
+```{r loadLibrary}
+library(geomeTriD)
+library(geomeTriD.documentation)
+library(GenomicRanges)
+library(TxDb.Mmusculus.UCSC.mm39.knownGene)
+library(org.Mm.eg.db)
+library(trackViewer)
+library(RColorBrewer)
+```
+
+### Prepare the annotation and genomic data
+The Region Capture Micro-C data were downloaded from [GSE207225](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE207225).
+The genomic signals of ChIP-seq were downloaded from [GSE178982](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE178982) and remapped to mm39 genome.
+
+```{r readdata}
+## import Genomic interaction data 
+geo_acc <- c("DMSO"='GSM6281851',
+             'IAA'='GSM6281852')
+url <- 'https://ftp.ncbi.nlm.nih.gov/geo/samples/GSM6281nnn';
+urls <- mapply(geo_acc, names(geo_acc), FUN=function(.f, .cond){
+  file.path(url, .f, 'suppl', 
+            paste0(.f, '_RCMC_BR1_merged_allCap_', .cond,
+                   '_mm39.merged.50.mcool'),
+            fsep='/')
+})
+## import the genomic interactions
+range_chr3_wid <- GRanges('chr3:30000000-40000000')
+gi <- importGInteractionsFromUrl(urls=urls, resolution=10000, range=range_chr3_wid,
+                                 format='cool', normalization='balanced')
+## create 3d model by mdsPlot function
+range_chr3 <-  GRanges('chr3:34500000-35500000')
+model3d <- lapply(gi, mdsPlot, range = range_chr3, k=3, render = 'granges')
+
+
+### create gene annotations
+#### get all genes
+feature.gr <- genes(TxDb.Mmusculus.UCSC.mm39.knownGene)
+
+#### subset the data by target viewer region
+feature.gr <- subsetByOverlaps(feature.gr, range_chr3)
+#### assign symbols for each gene
+symbols <- mget(feature.gr$gene_id, org.Mm.egSYMBOL, ifnotfound = NA)
+feature.gr$label[lengths(symbols) == 1] <- 
+  unlist(symbols[lengths(symbols) == 1])
+scr <- GRanges("chr3:34810610-34817610:+")
+scr$gene_id <- NA
+scr$label <- 'SCR'
+feature.gr <- c(feature.gr, scr)
+#### assign colors for each gene
+feature.gr$col <- sample(1:7, length(feature.gr), replace = TRUE)
+
+### plot for the detailed region ii to show the open or close loop.
+subregion <- GRanges('chr3:34695000-34840000')
+model3d.sub <- lapply(model3d, subsetByOverlaps, ranges=subregion)
+model3d.sub[['IAA']] <- alignCoor(model3d.sub[['IAA']], model3d.sub[['DMSO']])
+
+### import cohesion ctcf, and yy1 signals, realigned to mm39 for GSE178982
+pf <- system.file('extdata', package = 'geomeTriD.documentation')
+bws_files <- dir(file.path(pf, 'GSE178982', 'chr3'), '.bw', full.names = TRUE)
+(names(bws_files) <- sub('^.*?_(IAA|UT)_(.*?).CPM.*$', '\\2', bws_files))
+bw_UT <- bws_files[grepl('_UT_', bws_files)]
+bw_IAA <- bws_files[grepl('_IAA_', bws_files)]
+signals_UT <- lapply(bw_UT, importScore, format='BigWig', ranges=subregion)
+signals_IAA <- lapply(bw_IAA[names(bw_UT)], importScore, format='BigWig', ranges=subregion)
+colorSets <- c(CTCF="cyan",YY1="yellow",
+               RAD21="red", SMC1A="green", SMC3="blue")
+for(i in seq_along(signals_UT)){
+  setTrackStyleParam(signals_UT[[i]], "color", c("gray30", colorSets[names(signals_UT)[i]]))
+  setTrackStyleParam(signals_IAA[[i]], "color", c("gray30", colorSets[names(signals_UT)[i]]))
+}
+## set maximal lwd for UT and IAA samples according their max
+genomicScoreRanges <- lapply(signals_UT, function(.ele) range(.ele$dat$score))
+
+```
+
+### Plot the data by `geomeTriD`
+```{r viewStructure}
+### create the structure
+dmso <- view3dStructure(model3d.sub[['DMSO']], feature.gr = feature.gr,
+                        genomicSigs=signals_UT,
+                        reverseGenomicSigs = FALSE,
+                        genomicScoreRange = genomicScoreRanges,
+                        lwd.maxGenomicSigs = 20,
+                        k = 3, renderer = 'none')
+iaa <- view3dStructure(model3d.sub[['IAA']], feature.gr = feature.gr,
+                       genomicSigs=signals_IAA,
+                       reverseGenomicSigs = FALSE,
+                       genomicScoreRange = genomicScoreRanges,
+                       lwd.maxGenomicSigs = 20,
+                       k=3, renderer = 'none')
+iaa <- lapply(iaa, function(.ele){
+  .ele$side <- 'right'
+  .ele
+})
+threeJsViewer(dmso, iaa, title = c('DMSO control', 'IAA 3h'))
+#widget <- threeJsViewer(dmso, iaa, title = c('DMSO control', 'IAA 3h'), background = 'white')
+#tempfile <- 'Fig2.part1.html'#tempfile(fileext = '.html', pattern = 'RCMC_BR1_IAA_vs_DMSO_Klf1_II.3jsViewer.')
+#htmlwidgets::saveWidget(widget, file=tempfile)
+#utils::browseURL(tempfile)
+
+```
+
+### Plot with interaction signals
+
+The following plot clearly highlights the top 10 interaction events for DMSO and IAA samples. These interactions shift from the long-distance regions of Hook2 to more localized regions.
+
+```{r}
+## extract backbone coordinates, which will be used as the bone for RCMC data
+xyz_dmso <- extractBackbonePositions(dmso)
+xyz_iaa <- extractBackbonePositions(iaa)
+
+DMSO <- gi[['DMSO']]
+IAA <- gi[['IAA']]
+
+DMSO.subset_II <- subsetByOverlaps(DMSO, subregion)
+IAA.subset_II <- subsetByOverlaps(IAA, subregion)
+DMSO.subset_II <- DMSO.subset_II[distance(first(DMSO.subset_II), second(DMSO.subset_II))>5000]
+IAA.subset_II <- IAA.subset_II[distance(first(IAA.subset_II), second(IAA.subset_II))>5000]
+hic_dmso_II <- create3dGenomicSignals(
+  DMSO.subset_II, 
+  xyz_dmso,
+  name='dmsoII', # name prefix for the geometry
+  tag='dmsoII', # name for the layer in the scene
+  color = c('white', brewer.pal(9, 'YlOrRd')),
+  topN=10, # only plot the top 10 events ordered by the scores.
+  lwd.maxGenomicSigs = 3,
+  alpha=0.5
+)
+hic_iaa_II <- create3dGenomicSignals(
+  IAA.subset_II, 
+  xyz_iaa,
+  name='iaaII', # name prefix for the geometry
+  tag='iaaII', # name for the layer in the scene
+  color = c('white', brewer.pal(9, 'YlOrRd')),
+  topN=10, # only plot the top 10 events ordered by the scores.
+  lwd.maxGenomicSigs = 3,
+  alpha=0.5
+)
+hic_iaa_II <- lapply(hic_iaa_II, function(.ele){
+  .ele$side <- 'right'
+  .ele
+})
+threeJsViewer(dmso, iaa, hic_dmso_II, hic_iaa_II, title = c('DMSO', 'IAA 3h'), background = c('gray10', 'gray20', 'gray20', 'gray10'))
+#widget <- threeJsViewer(dmso, iaa, hic_dmso_II, hic_iaa_II, title = c('DMSO', 'IAA 3h'), background = c('gray10', 'gray20', 'gray20', 'gray10'))
+#tempfile <- 'Fig2.part2.html'#tempfile(fileext = '.html', pattern = 'RCMC_BR1_IAA_vs_DMSO_Klf1_II.3jsViewer.')
+#htmlwidgets::saveWidget(widget, file=tempfile)
+#utils::browseURL(tempfile)
+```
+
+## SessionInfo
+
+```{r sessionInfo}
+sessionInfo()
+```

@@ -16,6 +16,11 @@ An object of GRangesList
 Import FLAMINGO output to a GRangesList Object
 }
 \examples{
-# example code
+chrs <- paste0('chr', c(1, 'X'))
+gm12878 <- paste0('https://github.com/wangjr03/FLAMINGO/',
+                  'raw/refs/heads/main/predictions/GM12878/',
+                  chrs, '_5kb.txt')
+names(gm12878) <- chrs
+gm12878.gl <- importFLAMINGO(gm12878)
 
 }

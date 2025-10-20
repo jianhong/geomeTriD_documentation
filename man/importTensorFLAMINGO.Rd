@@ -21,6 +21,11 @@ An object of GRangesList
 Import Tensor-FLAMINGO output to a GRangesList Object
 }
 \examples{
-# example code
+cells <- 1:3
+gm12878 <- paste0('https://github.com/wangjr03/Tensor-FLAMINGO/raw/refs/',
+               'heads/main/predictions/10kb/GM12878_Dip-C/FLAMINGO_Cell_',
+                cells, '.txt')
+names(gm12878) <- cells
+gm12878.gl <- importTensorFLAMINGO(gm12878, binsize=10000, chr='chr21')
 
 }

@@ -24,3 +24,9 @@ A list of xyz.
 Aggregate the corresponding xyz values of xyz values for each xyz group
 by given function.
 }
+\examples{
+xyz <- data.frame(x=1:10, y=1:10, z=1:10)
+xyzs <- list(list(a=xyz[c(1, 3, 5, 7, 9), ],
+             b=xyz[c(2, 4, 6, 8, 10), ]))
+out <- aggregateXYZs(xyzs)
+}

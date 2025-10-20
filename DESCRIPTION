@@ -1,7 +1,7 @@
 Package: geomeTriD.documentation
 Type: Package
 Title: The documentation for geomeTriD package
-Version: 0.0.5
+Version: 0.0.6
 Authors@R: c(person(given="Jianhong", family="Ou", email="jou@morgridge.org", 
                  role=c("aut", "cre"), comment=c(ORCID="0000-0002-8652-2488")))
 Description: The data and scripts to help users to generate plots.
@@ -23,5 +23,5 @@ Suggests: knitr, rmarkdown, pkgdown, bookdown, pander,
 License: MIT + file LICENSE
 Encoding: UTF-8
 VignetteBuilder: knitr
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 DockerImage: ghcr.io/jianhong/geomeTriD_documentation
