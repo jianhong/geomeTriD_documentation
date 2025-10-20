@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">geomeTriD.documentation</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.5</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.6</span>
       </span>
     </div>
 
@@ -47,6 +47,9 @@
       <a href="../articles/Fig6.html">Figure 6 Vignette</a>
     </li>
     <li>
+      <a href="../articles/FigS2.html">Figure S2 Vignette</a>
+    </li>
+    <li>
       <a href="../articles/FigS3.html">Figure S3 Vignette</a>
     </li>
     <li>
@@ -72,7 +75,7 @@
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Import genomic signals from URL</h1>
-    <small class="dont-index">Source: <a href="https://github.com/jianhong/geomeTriD_documentation/blob/main/R/Utilities.R" class="external-link"><code>R/Utilities.R</code></a></small>
+    <small class="dont-index">Source: <a href="https://github.com/jianhong/geomeTriD_documentation/blob/HEAD/R/Utilities.R" class="external-link"><code>R/Utilities.R</code></a></small>
     <div class="hidden name"><code>importSignalFromUrl.Rd</code></div>
     </div>
 
@@ -111,7 +114,19 @@
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># example code</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://bioconductor.org/packages/GenomicRanges" class="external-link">GenomicRanges</a></span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">range</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/GenomicRanges/man/GRanges-class.html" class="external-link">GRanges</a></span><span class="op">(</span><span class="st">'chr4:50000-100000'</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co">## set the URLs</span></span></span>
+<span class="r-in"><span><span class="va">prefix</span> <span class="op">&lt;-</span> <span class="st">'https://www.encodeproject.org/files/'</span></span></span>
+<span class="r-in"><span><span class="va">url</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>H3K9me3 <span class="op">=</span> <span class="st">'ENCFF776OVW/@download/ENCFF776OVW.bigWig'</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">urls</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">prefix</span>, <span class="va">url</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">urls</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">url</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># download the files and import the signals</span></span></span>
+<span class="r-in"><span><span class="co"># genomicSigs &lt;- importSignalFromUrl(urls, range = range,</span></span></span>
+<span class="r-in"><span><span class="co">#                                     cols = list(</span></span></span>
+<span class="r-in"><span><span class="co">#                                       'H3K9me3'=c('#000011', 'blue'),</span></span></span>
+<span class="r-in"><span><span class="co">#                                       'H3K27ac'=c('#111100', 'orange')),</span></span></span>
+<span class="r-in"><span><span class="co">#                                     format = 'BigWig')</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
