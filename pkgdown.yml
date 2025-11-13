@@ -1,17 +1,17 @@
-pandoc: 3.6.3
-pkgdown: 2.1.3
+pandoc: 3.8.2.1
+pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
   Fig1: Fig1.html
   Fig2: Fig2.html
   Fig3: Fig3.html
   Fig4: Fig4.html
-  Fig6: Fig6.html
   FigS2: FigS2.html
   FigS3: FigS3.html
   FigS4: FigS4.html
   FigS5: FigS5.html
-last_built: 2025-10-20T17:12Z
+  FigS6: FigS6.html
+last_built: 2025-11-13T19:07Z
 urls:
   reference: https://jianhong.github.io/geomeTriD_documentation/reference
   article: https://jianhong.github.io/geomeTriD_documentation/articles
